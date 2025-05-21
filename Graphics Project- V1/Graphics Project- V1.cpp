@@ -155,9 +155,9 @@ struct Point {
     Point(int x = 0, int y=0) : x(x),y(y){}
 };
 
-Point store_last_center(int x, int y) {
-    return Point(x, y);
-}
+//Point store_last_center(int x, int y) {
+  //  return Point(x, y);
+//}
 
 void Add_Theme_Menu(HWND);
 HMENU MainMenu;
@@ -172,9 +172,9 @@ enum Algorithm {
     LINE_BRES,
     LINE_PARAM,
 };
-struct req_input{
-    int req = 0;
-};
+//struct req_input{
+  //int req = 0;
+//};
 template<typename T>
 class input_requirements {
 public:
