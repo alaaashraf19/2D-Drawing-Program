@@ -326,7 +326,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     delete dda_class;
                     dda_class = nullptr;
                     chosen_algo = NONE;
-                    Required_clicks = 0;
                 }
             }
             break;
@@ -340,7 +339,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     delete bres_class;
                     bres_class = nullptr;
                     chosen_algo = NONE;
-                    Required_clicks = 0;
                 }
             }
             break;
@@ -354,7 +352,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     delete param_class;
                     param_class = nullptr;
                     chosen_algo = NONE;
-                    Required_clicks = 0;
                 }
             }
             break;
