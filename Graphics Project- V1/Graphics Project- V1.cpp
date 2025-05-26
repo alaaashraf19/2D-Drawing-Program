@@ -8,6 +8,7 @@
 #include "Curves/curves.h"
 #include "utils.h"
 #include "vector"
+#include <stdio.h>
 
 #define MAX_LOADSTRING 100
 
@@ -28,6 +29,7 @@
 #define Set_Bkg_Light 31
 #define Set_Bkg_Dark 32
 
+#define CLEAR_SCREEN 1001
 using namespace std;
 
 HCURSOR ARROW = LoadCursor(nullptr, IDC_ARROW);
@@ -149,12 +151,87 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //  WM_DESTROY  - post a quit message and return
 //
 //
+bool SaveBitmapToFile(HBITMAP hBitmap, HDC hDC, LPCWSTR filename)
+{
+    BITMAP bmp;
+    PBITMAPINFO pbmi;
+    WORD cClrBits;
+    FILE* fp = nullptr;
 
+    if (!GetObject(hBitmap, sizeof(BITMAP), (LPSTR)&bmp))
+        return false;
 
+    cClrBits = (WORD)(bmp.bmPlanes * bmp.bmBitsPixel);
+    if (cClrBits == 1)
+        cClrBits = 1;
+    else if (cClrBits <= 4)
+        cClrBits = 4;
+    else if (cClrBits <= 8)
+        cClrBits = 8;
+    else if (cClrBits <= 16)
+        cClrBits = 16;
+    else if (cClrBits <= 24)
+        cClrBits = 24;
+    else cClrBits = 32;
+
+    pbmi = (PBITMAPINFO)LocalAlloc(LPTR, sizeof(BITMAPINFOHEADER) + sizeof(RGBQUAD) * (1 << cClrBits));
+
+    pbmi->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+    pbmi->bmiHeader.biWidth = bmp.bmWidth;
+    pbmi->bmiHeader.biHeight = bmp.bmHeight;
+    pbmi->bmiHeader.biPlanes = bmp.bmPlanes;
+    pbmi->bmiHeader.biBitCount = bmp.bmBitsPixel;
+    pbmi->bmiHeader.biCompression = BI_RGB;
+    pbmi->bmiHeader.biSizeImage = 0;
+    pbmi->bmiHeader.biXPelsPerMeter = 0;
+    pbmi->bmiHeader.biYPelsPerMeter = 0;
+    pbmi->bmiHeader.biClrUsed = 0;
+    pbmi->bmiHeader.biClrImportant = 0;
+
+    // Create file for writing
+    errno_t err = _wfopen_s(&fp, filename, L"wb");
+    if (err != 0)
+        return false;
+
+    BITMAPFILEHEADER hdr;
+    DWORD dwTotalBitsSize = pbmi->bmiHeader.biSizeImage;
+
+    if (dwTotalBitsSize == 0)
+        dwTotalBitsSize = ((bmp.bmWidth * cClrBits + 31) / 32) * 4 * bmp.bmHeight;
+
+    hdr.bfType = 0x4D42;  // 'BM'
+    hdr.bfSize = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER) + dwTotalBitsSize;
+    hdr.bfReserved1 = 0;
+    hdr.bfReserved2 = 0;
+    hdr.bfOffBits = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
+
+    // Write headers
+    fwrite(&hdr, sizeof(BITMAPFILEHEADER), 1, fp);
+    fwrite(&pbmi->bmiHeader, sizeof(BITMAPINFOHEADER), 1, fp);
+
+    // Allocate memory for bitmap bits
+    BYTE* lpBits = new BYTE[dwTotalBitsSize];
+
+    // Get bitmap bits
+    if (!GetDIBits(hDC, hBitmap, 0, (UINT)bmp.bmHeight, lpBits, pbmi, DIB_RGB_COLORS)) {
+        delete[] lpBits;
+        fclose(fp);
+        return false;
+    }
+
+    // Write bitmap bits to file
+    fwrite(lpBits, 1, dwTotalBitsSize, fp);
+
+    delete[] lpBits;
+    fclose(fp);
+    LocalFree(pbmi);
+
+    return true;
+}
 
 void Add_Theme_Menu(HWND);
 HMENU MainMenu;
-
+HCURSOR currentCursor = LoadCursor(NULL, IDC_ARROW);
 
 int Last_Saved_DC;
 int Required_clicks = 0;
@@ -236,8 +313,30 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
         case SAVE_DC:
         {
-            HDC current_hdc = GetDC(hWnd);
-            Last_Saved_DC = SaveDC(current_hdc);
+            RECT rc;
+            GetClientRect(hWnd, &rc);
+
+            HDC hdcWindow = GetDC(hWnd);
+            HDC hdcMem = CreateCompatibleDC(hdcWindow);
+            HBITMAP hBitmap = CreateCompatibleBitmap(hdcWindow, rc.right - rc.left, rc.bottom - rc.top);
+            HBITMAP hOldBitmap = (HBITMAP)SelectObject(hdcMem, hBitmap);
+
+            // Copy screen contents to memory DC
+            BitBlt(hdcMem, 0, 0, rc.right - rc.left, rc.bottom - rc.top, hdcWindow, 0, 0, SRCCOPY);
+
+            // Save bitmap to file
+            if (SaveBitmapToFile(hBitmap, hdcMem, L"saved_screen.bmp")) {
+                MessageBox(hWnd, L"Screen saved successfully.", L"Save", MB_OK);
+            }
+            else {
+                MessageBox(hWnd, L"Failed to save screen.", L"Save Error", MB_OK | MB_ICONERROR);
+            }
+
+            // Cleanup
+            SelectObject(hdcMem, hOldBitmap);
+            DeleteObject(hBitmap);
+            DeleteDC(hdcMem);
+            ReleaseDC(hWnd, hdcWindow);
 
         }
         break;
@@ -248,28 +347,36 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
 
         break;
+        case CLEAR_SCREEN:
+        {
+            InvalidateRect(hWnd, NULL, TRUE);
+        }
+        break;
         case Set_Bkg_Light:
         {
             HBRUSH brush = CreateSolidBrush(RGB(255, 255, 255));
             SetClassLongPtr(hWnd, GCLP_HBRBACKGROUND, (LONG_PTR)brush);
-            InvalidateRect(hWnd, NULL, TRUE);
+            //InvalidateRect(hWnd, NULL, TRUE);
         }
         break;
         case Set_Bkg_Dark:
         {
             HBRUSH brush = CreateSolidBrush(RGB(50, 50, 50));
             SetClassLongPtr(hWnd, GCLP_HBRBACKGROUND, (LONG_PTR)brush);
-            InvalidateRect(hWnd, NULL, TRUE);
+            //InvalidateRect(hWnd, NULL, TRUE);
         }
         break;
         case Set_Arrow_Cursor:
-            SetCursor(ARROW);
+            currentCursor = LoadCursor(NULL, IDC_ARROW);
+            SetCursor(currentCursor);
             break;
         case Set_Cross_Cursor:
-            SetCursor(CROSS);
+            currentCursor = LoadCursor(NULL, IDC_CROSS);
+            SetCursor(currentCursor);
             break;
         case Set_Ibeam_Cursor:
-            SetCursor(IBEAM);
+            currentCursor = LoadCursor(NULL, IDC_IBEAM);
+            SetCursor(currentCursor);
             break;
         case Draw_Line_DDA:
         {
@@ -387,6 +494,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         EndPaint(hWnd, &ps);
     }
     break;
+    case WM_SETCURSOR:
+        SetCursor(currentCursor);
+        return TRUE;
     case WM_DESTROY:
         PostQuitMessage(0);
         break;
@@ -431,6 +541,7 @@ void Add_Theme_Menu(HWND hWnd) {
 
     AppendMenuW(File, MF_STRING, SAVE_DC, L"Save");
     AppendMenuW(File, MF_STRING, RESTORE_DC, L"Load");
+    AppendMenuW(File, MF_STRING, CLEAR_SCREEN, L"Clear Screen");
 
     AppendMenuW(Draw, MF_POPUP, (UINT_PTR)Line, L"Line");
     AppendMenuW(Draw, MF_POPUP, (UINT_PTR)Circle, L"Circle");
@@ -465,6 +576,8 @@ void Add_Theme_Menu(HWND hWnd) {
     AppendMenuW(Cursor, MF_STRING, Set_Arrow_Cursor, L"Arrow");
     AppendMenuW(Cursor, MF_STRING, Set_Cross_Cursor, L"Plus");
     AppendMenuW(Cursor, MF_STRING, Set_Ibeam_Cursor, L"I Beam");
+
+    
 
     AppendMenuW(MainMenu, MF_POPUP, (UINT_PTR)File, L"File");
     AppendMenuW(MainMenu, MF_POPUP, (UINT_PTR)Draw, L"Draw");
