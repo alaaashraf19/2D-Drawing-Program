@@ -259,7 +259,7 @@ public:
         instance.run(hdc, pv);
     }
 };
-class DDA_LINE {
+class DDA_LINE {, added c
 public:
     void run(HDC hdc, vector<Point>& pv) {
         DrawLineDDA(hdc, pv[0].x, pv[0].y, pv[1].x, pv[1].y, RGB(255, 0, 0));
@@ -356,14 +356,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             HBRUSH brush = CreateSolidBrush(RGB(255, 255, 255));
             SetClassLongPtr(hWnd, GCLP_HBRBACKGROUND, (LONG_PTR)brush);
-            //InvalidateRect(hWnd, NULL, TRUE);
+            InvalidateRect(hWnd, NULL, TRUE);
         }
         break;
         case Set_Bkg_Dark:
         {
             HBRUSH brush = CreateSolidBrush(RGB(50, 50, 50));
             SetClassLongPtr(hWnd, GCLP_HBRBACKGROUND, (LONG_PTR)brush);
-            //InvalidateRect(hWnd, NULL, TRUE);
+            InvalidateRect(hWnd, NULL, TRUE);
         }
         break;
         case Set_Arrow_Cursor:
