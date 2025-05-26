@@ -259,7 +259,7 @@ public:
         instance.run(hdc, pv);
     }
 };
-class DDA_LINE {, added c
+class DDA_LINE {
 public:
     void run(HDC hdc, vector<Point>& pv) {
         DrawLineDDA(hdc, pv[0].x, pv[0].y, pv[1].x, pv[1].y, RGB(255, 0, 0));
