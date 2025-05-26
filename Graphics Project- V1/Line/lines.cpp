@@ -1,9 +1,7 @@
 #include "lines.h"
 
 using namespace std;
-int Round(double x) {
-    return (int)(x + 0.5);
-}
+
 void DrawLineDDA(HDC hdc, int x1, int y1, int x2, int y2, COLORREF c) {
     int dx = x2 - x1, dy = y2 - y1;
     SetPixel(hdc, x1, y1, c);

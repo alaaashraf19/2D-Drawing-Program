@@ -5,7 +5,8 @@
 #include "Graphics Project- V1.h"
 #include "Line/lines.h"
 #include "filling/floodfill.h"
-
+#include "Curves/curves.h"
+#include "utils.h"
 #include "vector"
 
 #define MAX_LOADSTRING 100
@@ -15,7 +16,7 @@
 #define Draw_Line_Param 213
 
 #define Rec_Flood_Fill 214
-
+#define Draw_Cardinal_Spline 215
 
 #define SAVE_DC 11
 #define RESTORE_DC 12
@@ -150,14 +151,6 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //
 
 
-struct Point {
-    int x, y;
-    Point(int x = 0, int y=0) : x(x),y(y){}
-};
-
-//Point store_last_center(int x, int y) {
-  //  return Point(x, y);
-//}
 
 void Add_Theme_Menu(HWND);
 HMENU MainMenu;
@@ -171,10 +164,9 @@ enum Algorithm {
     LINE_DDA,
     LINE_BRES,
     LINE_PARAM,
+    CARDINAL_SPLINE,
 };
-//struct req_input{
-  //int req = 0;
-//};
+
 template<typename T>
 class input_requirements {
 public:
@@ -208,9 +200,16 @@ public:
         DrawLineParametric(hdc, pv[0].x, pv[0].y, pv[1].x, pv[1].y, RGB(255, 0, 0));
     }
 };
+class Cardinal_Spline {
+public:
+    void run(HDC hdc, vector<Point>& pv) {
+        CardinalSpline(hdc, pv, 0.0, 1000, RGB(255, 0, 0));
+    }
+};
 input_requirements<DDA_LINE>* dda_class = nullptr;
 input_requirements<BRES_LINE>* bres_class = nullptr;
 input_requirements<Param_LINE>* param_class = nullptr;
+input_requirements<Cardinal_Spline>* cardinal_spline_class = nullptr;
 
 Algorithm chosen_algo = NONE;
 //req_input input;
@@ -294,8 +293,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         break;
         //case Rec_Flood_Fill:
-
-   
+        case Draw_Cardinal_Spline:
+        {
+            chosen_algo = CARDINAL_SPLINE;
+            cardinal_spline_class = new input_requirements<Cardinal_Spline>(chosen_algo, 6);
+        }
+        break;
         case IDM_ABOUT:
             DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
             break;
@@ -351,6 +354,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     param_class->run(hdc);
                     delete param_class;
                     param_class = nullptr;
+                    chosen_algo = NONE;
+                }
+            }
+            break;
+            case CARDINAL_SPLINE:
+            {
+                xg = LOWORD(lParam);
+                yg = HIWORD(lParam);
+                cardinal_spline_class->pv.push_back(Point(xg, yg));
+                if (cardinal_spline_class->pv.size() == cardinal_spline_class->req_pts) {
+                    cardinal_spline_class->run(hdc);
+                    delete cardinal_spline_class;
+                    cardinal_spline_class = nullptr;
                     chosen_algo = NONE;
                 }
             }
@@ -419,7 +435,7 @@ void Add_Theme_Menu(HWND hWnd) {
     AppendMenuW(Draw, MF_POPUP, (UINT_PTR)Line, L"Line");
     AppendMenuW(Draw, MF_POPUP, (UINT_PTR)Circle, L"Circle");
     AppendMenuW(Draw, MF_POPUP, (UINT_PTR)Ellipse, L"Ellipse");
-    AppendMenuW(Draw, MF_POPUP, NULL, L"Cardinal Spline Curve");
+    AppendMenuW(Draw, MF_POPUP, Draw_Cardinal_Spline, L"Cardinal Spline Curve");
 
     AppendMenuW(Line, MF_STRING, Draw_Line_DDA, L"DDA");
     AppendMenuW(Line, MF_STRING, Draw_Line_Bres, L"Midpoint");

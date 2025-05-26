@@ -13,10 +13,7 @@ void RecFloodFill(HDC hdc, int x, int y, COLORREF bc, COLORREF fc) {
 }
 
 
-struct Point {
-    int x, y;
-    Point(int x1 = 0, int y1 = 0) : x(x1), y(y1) {}
-};
+
 void NonRecFloodFill(HDC hdc, int x, int y, COLORREF bc, COLORREF fc) {
     stack <Point> st;
 
