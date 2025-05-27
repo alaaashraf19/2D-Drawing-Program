@@ -570,10 +570,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_LBUTTONDOWN:
     {
         if (chosen_algo != NONE && current_input_req) {
-            //int x = LOWORD(lParam);
-            //int y = HIWORD(lParam);
-            //pv.push_back(Point(x, y));
-            //if (pv.size() == input.req) break;
             xg = LOWORD(lParam);
             yg = HIWORD(lParam);
             current_input_req->pv.push_back(Point(xg, yg));
@@ -583,119 +579,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 current_input_req = nullptr;
                 chosen_algo = NONE;
             }
-            //switch (chosen_algo) {
-            //case LINE_DDA:
-            //{
-            //    xg = LOWORD(lParam);
-            //    yg = HIWORD(lParam);
-            //    dda_class->pv.push_back(Point(xg, yg));
-            //    if (dda_class->pv.size() == dda_class->req_pts) {
-            //        dda_class->run(hdc);
-            //        //all_drawn_shapes.push_back(new shapewrapper<DDA_LINE>(*dda_class));
-            //        delete dda_class;
-            //        dda_class = nullptr;
-            //        chosen_algo = NONE;
-            //    }
-            //}
-            //break;
-            //case LINE_BRES:
-            //{
-            //    xg = LOWORD(lParam);
-            //    yg = HIWORD(lParam);
-            //    bres_class->pv.push_back(Point(xg, yg));
-            //    if (bres_class->pv.size() == bres_class->req_pts) {
-            //        bres_class->run(hdc);
-            //        //all_drawn_shapes.push_back(new shapewrapper<BRES_LINE>(*bres_class));
-            //        delete bres_class;
-            //        bres_class = nullptr;
-            //        chosen_algo = NONE;
-            //    }
-            //}
-            //break;
-            //case LINE_PARAM:
-            //{
-            //    xg = LOWORD(lParam);
-            //    yg = HIWORD(lParam);
-            //    param_class->pv.push_back(Point(xg, yg));
-            //    if (param_class->pv.size() == param_class->req_pts) {
-            //        param_class->run(hdc);
-            //        //all_drawn_shapes.push_back(new shapewrapper<Param_LINE>(*param_class));
-            //        delete param_class;
-            //        param_class = nullptr;
-            //        chosen_algo = NONE;
-            //    }
-            //}
-            //break;
-            //case CARDINAL_SPLINE:
-            //{
-            //    xg = LOWORD(lParam);
-            //    yg = HIWORD(lParam);
-            //    cardinal_spline_class->pv.push_back(Point(xg, yg));
-            //    if (cardinal_spline_class->pv.size() == cardinal_spline_class->req_pts) {
-            //        cardinal_spline_class->run(hdc);
-            //        //all_drawn_shapes.push_back(new shapewrapper<Cardinal_Spline>(*cardinal_spline_class));
-            //        delete cardinal_spline_class;
-            //        cardinal_spline_class = nullptr;
-            //        chosen_algo = NONE;
-            //    }
-            //}
-            //break;
-            //case CONVEX_FILL:
-            //{
-            //    xg = LOWORD(lParam);
-            //    yg = HIWORD(lParam);
-            //    convex_fill_class->pv.push_back(Point(xg, yg));
-            //    if (convex_fill_class->pv.size() == convex_fill_class->req_pts) {
-            //        convex_fill_class->run(hdc);
-            //        delete convex_fill_class;
-            //        convex_fill_class = nullptr;
-            //        chosen_algo = NONE;
-            //    }
-            //}
-            //break;
-            //case ELLIPSE_DIRECT:
-            //{
-            //    xg = LOWORD(lParam);
-            //    yg = HIWORD(lParam);
-            //    ellipse_Direct_class->pv.push_back(Point(xg, yg));
-            //    if (ellipse_Direct_class->pv.size() == ellipse_Direct_class->req_pts) {
-            //        ellipse_Direct_class->run(hdc);
-            //        delete ellipse_Direct_class;
-            //        ellipse_Direct_class = nullptr;
-            //        chosen_algo = NONE;
-            //    }
-            //}
-            //break;
-            //case ELLIPSE_POLAR:
-            //{
-            //    xg = LOWORD(lParam);
-            //    yg = HIWORD(lParam);
-            //    ellipse_Polar_class->pv.push_back(Point(xg, yg));
-            //    if (ellipse_Polar_class->pv.size() == ellipse_Polar_class->req_pts) {
-            //        ellipse_Polar_class->run(hdc);
-            //        delete ellipse_Polar_class;
-            //        ellipse_Polar_class = nullptr;
-            //        chosen_algo = NONE;
-            //    }
-            //}
-            //break;
-            //case ELLIPSE_MIDPOINT:
-            //{
-            //    xg = LOWORD(lParam);
-            //    yg = HIWORD(lParam);
-            //    ellipse_Midpoint_class->pv.push_back(Point(xg, yg));
-            //    if (ellipse_Midpoint_class->pv.size() == ellipse_Midpoint_class->req_pts) {
-            //        ellipse_Midpoint_class->run(hdc);
-            //        delete ellipse_Midpoint_class;
-            //        ellipse_Midpoint_class = nullptr;
-            //        chosen_algo = NONE;
-            //    }
-            //}
-            //break;
-            //}//bta3t el switch
 
             ReleaseDC(hWnd, hdc);
-        }//bta3t el if
+        }
         
 
     }
