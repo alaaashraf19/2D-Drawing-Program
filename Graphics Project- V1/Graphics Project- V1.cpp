@@ -6,6 +6,7 @@
 #include "Line/lines.h"
 #include "filling/filling.h"
 #include "Curves/curves.h"
+#include "Ellipse/Ellipse.h"
 #include "utils.h"
 #include "vector"
 #include <stdio.h>
@@ -24,6 +25,9 @@
 
 
 #define Draw_Cardinal_Spline 217
+#define ellipse_direct 218
+#define ellipse_polar 219
+#define ellipse_midpoint 220
 
 #define SAVE_DC 11
 #define RESTORE_DC 12
@@ -252,19 +256,30 @@ enum Algorithm {
     LINE_PARAM,
     CARDINAL_SPLINE,
     CONVEX_FILL,
+    ELLIPSE_DIRECT,
+    ELLIPSE_POLAR,
+    ELLIPSE_MIDPOINT,
 };
 
-template<typename T>
-class input_requirements {
+class input_requirements_base {
 public:
     int req_pts;
     vector<Point> pv;
     Algorithm alg;
-    T instance;
-
-    input_requirements(Algorithm algorithm, int pts) : alg(algorithm), req_pts(pts) {
+    input_requirements_base(Algorithm algorithm, int pts) : alg(algorithm), req_pts(pts) {
         pv.reserve(pts);
     }
+    virtual void run(HDC hdc) = 0;
+    virtual ~input_requirements_base() {}
+};
+
+template<typename T>
+class input_requirements : public input_requirements_base {
+public:
+    T instance;
+
+    input_requirements(Algorithm algorithm, int pts) : input_requirements_base(algorithm, pts) {}
+   
     void run(HDC hdc) {
         instance.run(hdc, pv);
     }
@@ -330,14 +345,32 @@ public:
         ConvexFill(hdc, pv, pv.size(), RGB(255, 0, 0));
     }
 };
+
+class ellipse_Direct {
+public:
+    void run(HDC hdc, vector<Point>& pv) {
+        Ellipse_Direct(hdc, pv , RGB(255, 0, 0));
+    }
+};
+
+class ellipse_Polar {
+public:
+    void run(HDC hdc, vector<Point>& pv) {
+        Ellipse_polar(hdc, pv, RGB(255, 0, 0));
+    }
+};
+
+class ellipse_Midpoint {
+public:
+    void run(HDC hdc, vector<Point>& pv) {
+        Ellipse_Midpoint(hdc, pv , RGB(255, 0, 0));
+    }
+}; 
+
 //vector<shape*> all_drawn_shapes;
 
-input_requirements<DDA_LINE>* dda_class = nullptr;
-input_requirements<BRES_LINE>* bres_class = nullptr;
-input_requirements<Param_LINE>* param_class = nullptr;
-input_requirements<Cardinal_Spline>* cardinal_spline_class = nullptr;
-input_requirements<Convex_fill>* convex_fill_class = nullptr;
 
+input_requirements_base* current_input_req = nullptr;
 
 Algorithm chosen_algo = NONE;
 HBITMAP g_hLoadedBitmap = nullptr;
@@ -470,21 +503,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         case Draw_Line_DDA:
         {
             chosen_algo = LINE_DDA;
-            dda_class = new input_requirements<DDA_LINE>(chosen_algo, 2);
-            
+            current_input_req = new input_requirements<DDA_LINE>(chosen_algo, 2);
         }
         break;
         case Draw_Line_Bres:
         {
             chosen_algo = LINE_BRES;
-            bres_class = new input_requirements<BRES_LINE>(chosen_algo, 2);
-
+            current_input_req = new input_requirements<BRES_LINE>(chosen_algo, 2);
         }
         break;
         case Draw_Line_Param:
         {
             chosen_algo = LINE_PARAM;
-            param_class = new input_requirements<Param_LINE>(chosen_algo, 2);
+            current_input_req = new input_requirements<Param_LINE>(chosen_algo, 2);
 
         }
         break;
@@ -492,13 +523,35 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         case Draw_Cardinal_Spline:
         {
             chosen_algo = CARDINAL_SPLINE;
-            cardinal_spline_class = new input_requirements<Cardinal_Spline>(chosen_algo, 6);
+            current_input_req = new input_requirements<Cardinal_Spline>(chosen_algo, 6);
         }
         break;
+        case ellipse_direct:
+        {
+            chosen_algo = ELLIPSE_DIRECT;
+            current_input_req = new input_requirements<ellipse_Direct>(chosen_algo, 2);
+
+        }
+        break;
+
+        case ellipse_polar:
+        {
+            chosen_algo = ELLIPSE_POLAR;
+            current_input_req = new input_requirements<ellipse_Polar>(chosen_algo, 2);
+        }
+        break;
+
+        case ellipse_midpoint:
+        {
+            chosen_algo = ELLIPSE_MIDPOINT;
+            current_input_req = new input_requirements<ellipse_Midpoint>(chosen_algo, 2);
+        }
+        break;
+
         case Convex_Fill:
         {
             chosen_algo = CONVEX_FILL;
-            convex_fill_class = new input_requirements<Convex_fill>(chosen_algo, 5);
+            current_input_req = new input_requirements<Convex_fill>(chosen_algo, 5);
         }
         break;
         case IDM_ABOUT:
@@ -516,83 +569,130 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     break;
     case WM_LBUTTONDOWN:
     {
-        if (chosen_algo != NONE) {
+        if (chosen_algo != NONE && current_input_req) {
             //int x = LOWORD(lParam);
             //int y = HIWORD(lParam);
             //pv.push_back(Point(x, y));
             //if (pv.size() == input.req) break;
-
-            switch (chosen_algo) {
-            case LINE_DDA:
-            {
-                xg = LOWORD(lParam);
-                yg = HIWORD(lParam);
-                dda_class->pv.push_back(Point(xg, yg));
-                if (dda_class->pv.size() == dda_class->req_pts) {
-                    dda_class->run(hdc);
-                    //all_drawn_shapes.push_back(new shapewrapper<DDA_LINE>(*dda_class));
-                    delete dda_class;
-                    dda_class = nullptr;
-                    chosen_algo = NONE;
-                }
+            xg = LOWORD(lParam);
+            yg = HIWORD(lParam);
+            current_input_req->pv.push_back(Point(xg, yg));
+            if (current_input_req->pv.size() == current_input_req->req_pts) {
+                current_input_req->run(hdc);
+                delete current_input_req;
+                current_input_req = nullptr;
+                chosen_algo = NONE;
             }
-            break;
-            case LINE_BRES:
-            {
-                xg = LOWORD(lParam);
-                yg = HIWORD(lParam);
-                bres_class->pv.push_back(Point(xg, yg));
-                if (bres_class->pv.size() == bres_class->req_pts) {
-                    bres_class->run(hdc);
-                    //all_drawn_shapes.push_back(new shapewrapper<BRES_LINE>(*bres_class));
-                    delete bres_class;
-                    bres_class = nullptr;
-                    chosen_algo = NONE;
-                }
-            }
-            break;
-            case LINE_PARAM:
-            {
-                xg = LOWORD(lParam);
-                yg = HIWORD(lParam);
-                param_class->pv.push_back(Point(xg, yg));
-                if (param_class->pv.size() == param_class->req_pts) {
-                    param_class->run(hdc);
-                    //all_drawn_shapes.push_back(new shapewrapper<Param_LINE>(*param_class));
-                    delete param_class;
-                    param_class = nullptr;
-                    chosen_algo = NONE;
-                }
-            }
-            break;
-            case CARDINAL_SPLINE:
-            {
-                xg = LOWORD(lParam);
-                yg = HIWORD(lParam);
-                cardinal_spline_class->pv.push_back(Point(xg, yg));
-                if (cardinal_spline_class->pv.size() == cardinal_spline_class->req_pts) {
-                    cardinal_spline_class->run(hdc);
-                    //all_drawn_shapes.push_back(new shapewrapper<Cardinal_Spline>(*cardinal_spline_class));
-                    delete cardinal_spline_class;
-                    cardinal_spline_class = nullptr;
-                    chosen_algo = NONE;
-                }
-            }
-            break;
-            case CONVEX_FILL:
-            {
-                xg = LOWORD(lParam);
-                yg = HIWORD(lParam);
-                convex_fill_class->pv.push_back(Point(xg, yg));
-                if (convex_fill_class->pv.size() == convex_fill_class->req_pts) {
-                    convex_fill_class->run(hdc);
-                    delete convex_fill_class;
-                    convex_fill_class = nullptr;
-                    chosen_algo = NONE;
-                }
-            }
-            break;
-            }//bta3t el switch
+            //switch (chosen_algo) {
+            //case LINE_DDA:
+            //{
+            //    xg = LOWORD(lParam);
+            //    yg = HIWORD(lParam);
+            //    dda_class->pv.push_back(Point(xg, yg));
+            //    if (dda_class->pv.size() == dda_class->req_pts) {
+            //        dda_class->run(hdc);
+            //        //all_drawn_shapes.push_back(new shapewrapper<DDA_LINE>(*dda_class));
+            //        delete dda_class;
+            //        dda_class = nullptr;
+            //        chosen_algo = NONE;
+            //    }
+            //}
+            //break;
+            //case LINE_BRES:
+            //{
+            //    xg = LOWORD(lParam);
+            //    yg = HIWORD(lParam);
+            //    bres_class->pv.push_back(Point(xg, yg));
+            //    if (bres_class->pv.size() == bres_class->req_pts) {
+            //        bres_class->run(hdc);
+            //        //all_drawn_shapes.push_back(new shapewrapper<BRES_LINE>(*bres_class));
+            //        delete bres_class;
+            //        bres_class = nullptr;
+            //        chosen_algo = NONE;
+            //    }
+            //}
+            //break;
+            //case LINE_PARAM:
+            //{
+            //    xg = LOWORD(lParam);
+            //    yg = HIWORD(lParam);
+            //    param_class->pv.push_back(Point(xg, yg));
+            //    if (param_class->pv.size() == param_class->req_pts) {
+            //        param_class->run(hdc);
+            //        //all_drawn_shapes.push_back(new shapewrapper<Param_LINE>(*param_class));
+            //        delete param_class;
+            //        param_class = nullptr;
+            //        chosen_algo = NONE;
+            //    }
+            //}
+            //break;
+            //case CARDINAL_SPLINE:
+            //{
+            //    xg = LOWORD(lParam);
+            //    yg = HIWORD(lParam);
+            //    cardinal_spline_class->pv.push_back(Point(xg, yg));
+            //    if (cardinal_spline_class->pv.size() == cardinal_spline_class->req_pts) {
+            //        cardinal_spline_class->run(hdc);
+            //        //all_drawn_shapes.push_back(new shapewrapper<Cardinal_Spline>(*cardinal_spline_class));
+            //        delete cardinal_spline_class;
+            //        cardinal_spline_class = nullptr;
+            //        chosen_algo = NONE;
+            //    }
+            //}
+            //break;
+            //case CONVEX_FILL:
+            //{
+            //    xg = LOWORD(lParam);
+            //    yg = HIWORD(lParam);
+            //    convex_fill_class->pv.push_back(Point(xg, yg));
+            //    if (convex_fill_class->pv.size() == convex_fill_class->req_pts) {
+            //        convex_fill_class->run(hdc);
+            //        delete convex_fill_class;
+            //        convex_fill_class = nullptr;
+            //        chosen_algo = NONE;
+            //    }
+            //}
+            //break;
+            //case ELLIPSE_DIRECT:
+            //{
+            //    xg = LOWORD(lParam);
+            //    yg = HIWORD(lParam);
+            //    ellipse_Direct_class->pv.push_back(Point(xg, yg));
+            //    if (ellipse_Direct_class->pv.size() == ellipse_Direct_class->req_pts) {
+            //        ellipse_Direct_class->run(hdc);
+            //        delete ellipse_Direct_class;
+            //        ellipse_Direct_class = nullptr;
+            //        chosen_algo = NONE;
+            //    }
+            //}
+            //break;
+            //case ELLIPSE_POLAR:
+            //{
+            //    xg = LOWORD(lParam);
+            //    yg = HIWORD(lParam);
+            //    ellipse_Polar_class->pv.push_back(Point(xg, yg));
+            //    if (ellipse_Polar_class->pv.size() == ellipse_Polar_class->req_pts) {
+            //        ellipse_Polar_class->run(hdc);
+            //        delete ellipse_Polar_class;
+            //        ellipse_Polar_class = nullptr;
+            //        chosen_algo = NONE;
+            //    }
+            //}
+            //break;
+            //case ELLIPSE_MIDPOINT:
+            //{
+            //    xg = LOWORD(lParam);
+            //    yg = HIWORD(lParam);
+            //    ellipse_Midpoint_class->pv.push_back(Point(xg, yg));
+            //    if (ellipse_Midpoint_class->pv.size() == ellipse_Midpoint_class->req_pts) {
+            //        ellipse_Midpoint_class->run(hdc);
+            //        delete ellipse_Midpoint_class;
+            //        ellipse_Midpoint_class = nullptr;
+            //        chosen_algo = NONE;
+            //    }
+            //}
+            //break;
+            //}//bta3t el switch
 
             ReleaseDC(hWnd, hdc);
         }//bta3t el if
@@ -708,9 +808,9 @@ void Add_Theme_Menu(HWND hWnd) {
     AppendMenuW(Fill, MF_POPUP, (UINT_PTR)ScanLineFilling, L"Scan Line Fill");
 
 
-    AppendMenuW(Ellipse, MF_STRING, NULL, L"Direct");
-    AppendMenuW(Ellipse, MF_STRING, NULL, L"Polar");
-    AppendMenuW(Ellipse, MF_STRING, NULL, L"Midpoint");
+    AppendMenuW(Ellipse, MF_STRING, ellipse_direct, L"Direct");
+    AppendMenuW(Ellipse, MF_STRING, ellipse_polar, L"Polar");
+    AppendMenuW(Ellipse, MF_STRING, ellipse_midpoint, L"Midpoint");
 
 
     AppendMenuW(Theme, MF_STRING, Set_Bkg_Light, L"Light");
