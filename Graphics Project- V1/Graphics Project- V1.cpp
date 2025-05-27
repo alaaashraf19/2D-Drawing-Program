@@ -10,6 +10,7 @@
 #include "vector"
 #include <stdio.h>
 
+
 #define MAX_LOADSTRING 100
 
 #define Draw_Line_DDA 211
@@ -22,7 +23,7 @@
 #define Convex_Fill 216
 
 
-#define Draw_Cardinal_Spline 215
+#define Draw_Cardinal_Spline 217
 
 #define SAVE_DC 11
 #define RESTORE_DC 12
@@ -34,6 +35,7 @@
 #define Set_Bkg_Light 31
 #define Set_Bkg_Dark 32
 
+#define LOAD 33
 #define CLEAR_SCREEN 1001
 using namespace std;
 
@@ -233,6 +235,7 @@ bool SaveBitmapToFile(HBITMAP hBitmap, HDC hDC, LPCWSTR filename)
 
     return true;
 }
+///////////////////////////////////////////////////////////
 
 void Add_Theme_Menu(HWND);
 HMENU MainMenu;
@@ -248,15 +251,8 @@ enum Algorithm {
     LINE_BRES,
     LINE_PARAM,
     CARDINAL_SPLINE,
+    CONVEX_FILL,
 };
-
-struct LastShape {
-    vector<Point> points;
-    COLORREF c;
-    Algorithm alg;
-    LastShape(const vector<Point>& p, COLORREF C, Algorithm a): points(p), c(C), alg(a)  {}
-};
-
 
 template<typename T>
 class input_requirements {
@@ -266,46 +262,86 @@ public:
     Algorithm alg;
     T instance;
 
-    input_requirements(Algorithm algorithm, int pts) : alg(algorithm), req_pts(pts){
+    input_requirements(Algorithm algorithm, int pts) : alg(algorithm), req_pts(pts) {
         pv.reserve(pts);
     }
     void run(HDC hdc) {
         instance.run(hdc, pv);
     }
 };
+
+//class shape {
+//public:
+//    virtual void run(HDC hdc)=0;
+//    virtual ~shape() {}
+//};
+
+//template<typename T>
+//class shapewrapper : public shape {
+//public:
+//    input_requirements<T> req;
+//    shapewrapper(const input_requirements<T> & inp) : req(inp) {}
+//    void run (HDC hdc) override {
+//        req.run(hdc);
+//    }
+//};
+
+
+//struct LastShape {
+//    vector<Point> points;
+//    COLORREF c;
+//    Algorithm alg;
+//    LastShape(const vector<Point>& p, COLORREF C, Algorithm a): points(p), c(C), alg(a)  {}
+//};
+
+
+
 class DDA_LINE {
 public:
     void run(HDC hdc, vector<Point>& pv) {
         DrawLineDDA(hdc, pv[0].x, pv[0].y, pv[1].x, pv[1].y, RGB(255, 0, 0));
     }
 };
+
 class BRES_LINE {
 public:
     void run(HDC hdc, vector<Point>& pv) {
         DrawLineBresenham(hdc, pv[0].x, pv[0].y, pv[1].x, pv[1].y, RGB(255, 0, 0));
     }
 };
+
 class Param_LINE {
 public:
     void run(HDC hdc, vector<Point>& pv) {
         DrawLineParametric(hdc, pv[0].x, pv[0].y, pv[1].x, pv[1].y, RGB(255, 0, 0));
     }
 };
+
 class Cardinal_Spline {
 public:
     void run(HDC hdc, vector<Point>& pv) {
         CardinalSpline(hdc, pv, 0.0, 1000, RGB(255, 0, 0));
     }
 };
- 
+
+class Convex_fill {
+public:
+    void run(HDC hdc, vector<Point>& pv) {
+        ConvexFill(hdc, pv, pv.size(), RGB(255, 0, 0));
+    }
+};
+//vector<shape*> all_drawn_shapes;
+
 input_requirements<DDA_LINE>* dda_class = nullptr;
 input_requirements<BRES_LINE>* bres_class = nullptr;
 input_requirements<Param_LINE>* param_class = nullptr;
 input_requirements<Cardinal_Spline>* cardinal_spline_class = nullptr;
+input_requirements<Convex_fill>* convex_fill_class = nullptr;
+
 
 Algorithm chosen_algo = NONE;
-//req_input input;
-//vector<Point> pv;
+HBITMAP g_hLoadedBitmap = nullptr;
+
 int xg, yg;
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -361,7 +397,31 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             hdc = GetDC(hWnd);
             RestoreDC(hdc, Last_Saved_DC);
         }
+        break;
+        case LOAD:
+        {
+            //hdc = GetDC(hWnd);
+            //for (auto shape : all_drawn_shapes) shape->run(hdc);
+            if (g_hLoadedBitmap) {
+                DeleteObject(g_hLoadedBitmap);
+                g_hLoadedBitmap = nullptr;
+            }
 
+            g_hLoadedBitmap = (HBITMAP)LoadImageW(
+                nullptr,
+                L"saved_screen.bmp",
+                IMAGE_BITMAP,
+                0, 0,
+                LR_LOADFROMFILE
+            );
+
+            if (!g_hLoadedBitmap) {
+                MessageBox(hWnd, L"Failed to load bitmap.", L"Load Error", MB_OK | MB_ICONERROR);
+            }
+            else {
+                InvalidateRect(hWnd, nullptr, TRUE);  // Trigger WM_PAINT to redraw window with new bitmap
+            }
+        }
         break;
 
         case CLEAR_SCREEN:
@@ -435,7 +495,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             cardinal_spline_class = new input_requirements<Cardinal_Spline>(chosen_algo, 6);
         }
         break;
-
+        case Convex_Fill:
+        {
+            chosen_algo = CONVEX_FILL;
+            convex_fill_class = new input_requirements<Convex_fill>(chosen_algo, 5);
+        }
+        break;
         case IDM_ABOUT:
             DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
         break;
@@ -465,6 +530,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 dda_class->pv.push_back(Point(xg, yg));
                 if (dda_class->pv.size() == dda_class->req_pts) {
                     dda_class->run(hdc);
+                    //all_drawn_shapes.push_back(new shapewrapper<DDA_LINE>(*dda_class));
                     delete dda_class;
                     dda_class = nullptr;
                     chosen_algo = NONE;
@@ -478,6 +544,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 bres_class->pv.push_back(Point(xg, yg));
                 if (bres_class->pv.size() == bres_class->req_pts) {
                     bres_class->run(hdc);
+                    //all_drawn_shapes.push_back(new shapewrapper<BRES_LINE>(*bres_class));
                     delete bres_class;
                     bres_class = nullptr;
                     chosen_algo = NONE;
@@ -491,6 +558,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 param_class->pv.push_back(Point(xg, yg));
                 if (param_class->pv.size() == param_class->req_pts) {
                     param_class->run(hdc);
+                    //all_drawn_shapes.push_back(new shapewrapper<Param_LINE>(*param_class));
                     delete param_class;
                     param_class = nullptr;
                     chosen_algo = NONE;
@@ -504,8 +572,22 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 cardinal_spline_class->pv.push_back(Point(xg, yg));
                 if (cardinal_spline_class->pv.size() == cardinal_spline_class->req_pts) {
                     cardinal_spline_class->run(hdc);
+                    //all_drawn_shapes.push_back(new shapewrapper<Cardinal_Spline>(*cardinal_spline_class));
                     delete cardinal_spline_class;
                     cardinal_spline_class = nullptr;
+                    chosen_algo = NONE;
+                }
+            }
+            break;
+            case CONVEX_FILL:
+            {
+                xg = LOWORD(lParam);
+                yg = HIWORD(lParam);
+                convex_fill_class->pv.push_back(Point(xg, yg));
+                if (convex_fill_class->pv.size() == convex_fill_class->req_pts) {
+                    convex_fill_class->run(hdc);
+                    delete convex_fill_class;
+                    convex_fill_class = nullptr;
                     chosen_algo = NONE;
                 }
             }
@@ -522,7 +604,23 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
         PAINTSTRUCT ps;
         HDC hdc = BeginPaint(hWnd, &ps);
-        // TODO: Add any drawing code that uses hdc here...
+        
+        if (g_hLoadedBitmap) {
+            // Create a memory DC compatible with the window DC
+            HDC hdcMem = CreateCompatibleDC(hdc);
+            HBITMAP hOldBmp = (HBITMAP)SelectObject(hdcMem, g_hLoadedBitmap);
+
+            // Get bitmap size
+            BITMAP bmp;
+            GetObject(g_hLoadedBitmap, sizeof(BITMAP), &bmp);
+
+            // Copy bitmap to window DC
+            BitBlt(hdc, 0, 0, bmp.bmWidth, bmp.bmHeight, hdcMem, 0, 0, SRCCOPY);
+
+            // Cleanup
+            SelectObject(hdcMem, hOldBmp);
+            DeleteDC(hdcMem);
+        }
         EndPaint(hWnd, &ps);
     }
     break;
@@ -530,8 +628,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         SetCursor(currentCursor);
         return TRUE;
     case WM_DESTROY:
+    {
+        if (g_hLoadedBitmap) {
+            DeleteObject(g_hLoadedBitmap);
+            g_hLoadedBitmap = nullptr;
+        }
         PostQuitMessage(0);
-        break;
+    }
+        
+    break;
     default:
         return DefWindowProc(hWnd, message, wParam, lParam);
     }
@@ -573,7 +678,8 @@ void Add_Theme_Menu(HWND hWnd) {
     HMENU Cursor = CreateMenu();
 
     AppendMenuW(File, MF_STRING, SAVE_DC, L"Save");
-    AppendMenuW(File, MF_STRING, RESTORE_DC, L"Load");
+    //AppendMenuW(File, MF_STRING, RESTORE_DC, L"Load");
+    AppendMenuW(File, MF_STRING, LOAD, L"Load");
     AppendMenuW(File, MF_STRING, CLEAR_SCREEN, L"Clear Screen");
 
     AppendMenuW(Draw, MF_POPUP, (UINT_PTR)Line, L"Line");
