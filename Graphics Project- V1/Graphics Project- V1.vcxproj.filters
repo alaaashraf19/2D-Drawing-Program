@@ -30,7 +30,13 @@
     <ClInclude Include="Line\lines.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="filling\floodfill.h">
+    <ClInclude Include="filling\filling.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Curves\curves.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -41,7 +47,13 @@
     <ClCompile Include="Line\lines.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="filling\floodfill.cpp">
+    <ClCompile Include="filling\filling.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Curves\curves.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

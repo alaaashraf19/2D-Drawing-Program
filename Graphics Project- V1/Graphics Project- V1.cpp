@@ -4,7 +4,7 @@
 #include "framework.h"
 #include "Graphics Project- V1.h"
 #include "Line/lines.h"
-#include "filling/floodfill.h"
+#include "filling/filling.h"
 #include "Curves/curves.h"
 #include "utils.h"
 #include "vector"
@@ -16,7 +16,12 @@
 #define Draw_Line_Bres 212
 #define Draw_Line_Param 213
 
-#define Rec_Flood_Fill 214
+#define Flood_Fill 214
+#define Rec_Flood_Fill 215
+
+#define Convex_Fill 216
+
+
 #define Draw_Cardinal_Spline 215
 
 #define SAVE_DC 11
@@ -236,6 +241,7 @@ HCURSOR currentCursor = LoadCursor(NULL, IDC_ARROW);
 int Last_Saved_DC;
 int Required_clicks = 0;
 
+
 enum Algorithm {
     NONE,
     LINE_DDA,
@@ -243,6 +249,14 @@ enum Algorithm {
     LINE_PARAM,
     CARDINAL_SPLINE,
 };
+
+struct LastShape {
+    vector<Point> points;
+    COLORREF c;
+    Algorithm alg;
+    LastShape(const vector<Point>& p, COLORREF C, Algorithm a): points(p), c(C), alg(a)  {}
+};
+
 
 template<typename T>
 class input_requirements {
@@ -283,6 +297,7 @@ public:
         CardinalSpline(hdc, pv, 0.0, 1000, RGB(255, 0, 0));
     }
 };
+ 
 input_requirements<DDA_LINE>* dda_class = nullptr;
 input_requirements<BRES_LINE>* bres_class = nullptr;
 input_requirements<Param_LINE>* param_class = nullptr;
@@ -340,6 +355,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         }
         break;
+
         case RESTORE_DC:
         {
             hdc = GetDC(hWnd);
@@ -347,11 +363,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
 
         break;
+
         case CLEAR_SCREEN:
         {
             InvalidateRect(hWnd, NULL, TRUE);
         }
         break;
+
         case Set_Bkg_Light:
         {
             HBRUSH brush = CreateSolidBrush(RGB(255, 255, 255));
@@ -359,6 +377,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             InvalidateRect(hWnd, NULL, TRUE);
         }
         break;
+
         case Set_Bkg_Dark:
         {
             HBRUSH brush = CreateSolidBrush(RGB(50, 50, 50));
@@ -366,23 +385,33 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             InvalidateRect(hWnd, NULL, TRUE);
         }
         break;
+
         case Set_Arrow_Cursor:
+        {
             currentCursor = LoadCursor(NULL, IDC_ARROW);
             SetCursor(currentCursor);
-            break;
+        }          
+        break;
+
         case Set_Cross_Cursor:
+        {
             currentCursor = LoadCursor(NULL, IDC_CROSS);
             SetCursor(currentCursor);
-            break;
+        }         
+        break;
+
         case Set_Ibeam_Cursor:
+        {
             currentCursor = LoadCursor(NULL, IDC_IBEAM);
             SetCursor(currentCursor);
-            break;
+        }
+        break;
+
         case Draw_Line_DDA:
         {
             chosen_algo = LINE_DDA;
             dda_class = new input_requirements<DDA_LINE>(chosen_algo, 2);
-            //DrawLineDDA(hdc, 10, 10, 300, 100, RGB(255, 0, 0));
+            
         }
         break;
         case Draw_Line_Bres:
@@ -406,12 +435,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             cardinal_spline_class = new input_requirements<Cardinal_Spline>(chosen_algo, 6);
         }
         break;
+
         case IDM_ABOUT:
             DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
-            break;
+        break;
+
         case IDM_EXIT:
             DestroyWindow(hWnd);
-            break;
+        break;
+
         default:
             return DefWindowProc(hWnd, message, wParam, lParam);
         }
@@ -536,6 +568,7 @@ void Add_Theme_Menu(HWND hWnd) {
     HMENU Ellipse = CreateMenu();
     HMENU Fill = CreateMenu();
     HMENU FloodFill = CreateMenu();
+    HMENU ScanLineFilling = CreateMenu();
     HMENU Theme = CreateMenu();
     HMENU Cursor = CreateMenu();
 
@@ -562,7 +595,11 @@ void Add_Theme_Menu(HWND hWnd) {
     AppendMenuW(FloodFill, MF_STRING, NULL, L"Recursive");
     AppendMenuW(FloodFill, MF_STRING, NULL, L"Non Recursive");
 
+    AppendMenuW(ScanLineFilling, MF_STRING, Convex_Fill, L"Convex Filling");
+    AppendMenuW(ScanLineFilling, MF_STRING, NULL, L"Non Convex Filling");
+
     AppendMenuW(Fill, MF_POPUP, (UINT_PTR)FloodFill, L"Flood Fill");
+    AppendMenuW(Fill, MF_POPUP, (UINT_PTR)ScanLineFilling, L"Scan Line Fill");
 
 
     AppendMenuW(Ellipse, MF_STRING, NULL, L"Direct");

@@ -128,7 +128,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Curves\curves.h" />
-    <ClInclude Include="filling\floodfill.h" />
+    <ClInclude Include="filling\filling.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Graphics Project- V1.h" />
     <ClInclude Include="Line\lines.h" />
@@ -138,7 +138,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Curves\curves.cpp" />
-    <ClCompile Include="filling\floodfill.cpp" />
+    <ClCompile Include="filling\filling.cpp" />
     <ClCompile Include="Graphics Project- V1.cpp" />
     <ClCompile Include="Line\lines.cpp" />
     <ClCompile Include="utils.cpp" />
