@@ -22,6 +22,7 @@
 #define Rec_Flood_Fill 215
 
 #define Convex_Fill 216
+#define Non_Convex_Fill 221
 
 
 #define Draw_Cardinal_Spline 217
@@ -256,6 +257,7 @@ enum Algorithm {
     LINE_PARAM,
     CARDINAL_SPLINE,
     CONVEX_FILL,
+    NON_CONVEX_FILL,
     ELLIPSE_DIRECT,
     ELLIPSE_POLAR,
     ELLIPSE_MIDPOINT,
@@ -343,6 +345,13 @@ class Convex_fill {
 public:
     void run(HDC hdc, vector<Point>& pv) {
         ConvexFill(hdc, pv, pv.size(), RGB(255, 0, 0));
+    }
+};
+
+class Non_Convex_fill {
+public:
+    void run(HDC hdc, vector<Point>& pv) {
+        NonConvexFill(hdc, pv, pv.size(), RGB(255, 0, 0));
     }
 };
 
@@ -554,6 +563,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             current_input_req = new input_requirements<Convex_fill>(chosen_algo, 5);
         }
         break;
+
+        case Non_Convex_Fill:
+        {
+            chosen_algo = NON_CONVEX_FILL;
+            current_input_req = new input_requirements<Non_Convex_fill>(chosen_algo, 8);
+        }
+        break;
+
         case IDM_ABOUT:
             DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
         break;
@@ -688,7 +705,7 @@ void Add_Theme_Menu(HWND hWnd) {
     AppendMenuW(FloodFill, MF_STRING, NULL, L"Non Recursive");
 
     AppendMenuW(ScanLineFilling, MF_STRING, Convex_Fill, L"Convex Filling");
-    AppendMenuW(ScanLineFilling, MF_STRING, NULL, L"Non Convex Filling");
+    AppendMenuW(ScanLineFilling, MF_STRING, Non_Convex_Fill, L"Non Convex Filling");
 
     AppendMenuW(Fill, MF_POPUP, (UINT_PTR)FloodFill, L"Flood Fill");
     AppendMenuW(Fill, MF_POPUP, (UINT_PTR)ScanLineFilling, L"Scan Line Fill");

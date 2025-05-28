@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <stack>
 #include "vector"
+#include <list> 
 #include "../utils.h"
 #include "../Line/lines.h"
 using namespace std;
@@ -12,3 +13,6 @@ void NonRecFloodFill(HDC hdc, int x, int y, COLORREF bc, COLORREF fc);
 
 ///Convex Filling
 void ConvexFill(HDC hdc, std::vector<Point> v, int n, COLORREF c);
+
+//Non Convex Fill
+void NonConvexFill(HDC hdc, std::vector<Point> v, int n, COLORREF c);

@@ -83,3 +83,72 @@ void ConvexFill(HDC hdc, std::vector<Point> v, int n, COLORREF c) {
 
 }
 
+
+
+struct node {
+    double x;
+    double slopeinv;
+    int ymax;
+
+    bool operator<(node n) {
+        return x < n.x;
+    }
+};
+
+node Init_nodes(Point &v1, Point &v2) {
+    if (v1.y > v2.y)
+        swap(v1, v2);
+    node n;
+    n.x = v1.x;
+    n.ymax = v2.y;
+    n.slopeinv = double(v2.x - v1.x) / (v2.y - v1.y);
+    return n;
+}
+
+void Init_edges(vector<Point> v, int n, vector<list<node>>  &Ys) {
+    Point v1 = v[n - 1];
+    for (int i = 0; i < n; ++i) {
+        Point v2 = v[i];
+        if (v1.y == v2.y) {
+            v1 = v2;
+            continue;
+        }
+        node n = Init_nodes(v1, v2);
+        Ys[v1.y].push_back(n);
+        v1 = v[i];
+    }
+}
+
+void NonConvexFill(HDC hdc, std::vector<Point> v, int n, COLORREF c) {
+    vector<list<node>> Ys(800);
+    Init_edges(v, n, Ys);
+    int y = 0;
+    while (y < 800 && Ys[y].size() == 0)
+        y++;
+    if (y == 800)
+        return;
+
+    list <node> ActiveList = Ys[y];
+    while (ActiveList.size() > 0)
+    {
+        ActiveList.sort();
+        for (auto it = ActiveList.begin(); it != ActiveList.end(); ++it) {
+            int x1 = (int)ceil(it->x);
+            it++;
+            int x2 = (int)floor(it->x);
+            DrawLineBresenham(hdc, x1, y, x2, y, c);
+        }
+        y++;
+
+        auto it = ActiveList.begin();
+        while (it != ActiveList.end()) {
+            if (y == it->ymax)
+                it = ActiveList.erase(it);
+            else
+                it++;
+        }
+        for (auto it = ActiveList.begin(); it != ActiveList.end(); it++)
+            it->x += it->slopeinv;
+        ActiveList.insert(ActiveList.end(), Ys[y].begin(), Ys[y].end());
+    }
+}
