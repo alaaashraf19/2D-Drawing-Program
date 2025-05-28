@@ -10,7 +10,7 @@
 #include "utils.h"
 #include "vector"
 #include <stdio.h>
-
+#include <commdlg.h>  
 
 #define MAX_LOADSTRING 100
 
@@ -29,6 +29,8 @@
 #define ellipse_direct 218
 #define ellipse_polar 219
 #define ellipse_midpoint 220
+
+#define Choose_Color 222
 
 #define SAVE_DC 11
 #define RESTORE_DC 12
@@ -242,6 +244,27 @@ bool SaveBitmapToFile(HBITMAP hBitmap, HDC hDC, LPCWSTR filename)
 }
 ///////////////////////////////////////////////////////////
 
+
+COLORREF PickColor(HWND hwndParent) {
+    CHOOSECOLOR cc;                 // common dialog box structure
+    static COLORREF customColors[16]; 
+
+    ZeroMemory(&cc, sizeof(cc));
+    cc.lStructSize = sizeof(cc);
+    cc.hwndOwner = hwndParent;
+    cc.lpCustColors = customColors;
+    cc.rgbResult = RGB(255, 0, 0);  // default color (red)
+    cc.Flags = CC_FULLOPEN | CC_RGBINIT;
+
+    if (ChooseColor(&cc)) {
+        return cc.rgbResult;  
+    }
+    else {
+        return RGB(0, 0, 0);  //user cancelled,returning color (black)
+    }
+}
+
+/////////////////////////////////////////////////////////
 void Add_Theme_Menu(HWND);
 HMENU MainMenu;
 HCURSOR currentCursor = LoadCursor(NULL, IDC_ARROW);
@@ -268,9 +291,11 @@ public:
     int req_pts;
     vector<Point> pv;
     Algorithm alg;
-    input_requirements_base(Algorithm algorithm, int pts) : alg(algorithm), req_pts(pts) {
-        pv.reserve(pts);
+    COLORREF c;
+    input_requirements_base(Algorithm algorithm, int pts, COLORREF color) : alg(algorithm), req_pts(pts), c(color) {
+        pv.reserve(pts);  
     }
+
     virtual void run(HDC hdc) = 0;
     virtual ~input_requirements_base() {}
 };
@@ -280,10 +305,10 @@ class input_requirements : public input_requirements_base {
 public:
     T instance;
 
-    input_requirements(Algorithm algorithm, int pts) : input_requirements_base(algorithm, pts) {}
+    input_requirements(Algorithm algorithm, int pts, COLORREF c) : input_requirements_base(algorithm, pts,c) {}
    
     void run(HDC hdc) {
-        instance.run(hdc, pv);
+        instance.run(hdc, pv, c);
     }
 };
 
@@ -315,64 +340,64 @@ public:
 
 class DDA_LINE {
 public:
-    void run(HDC hdc, vector<Point>& pv) {
-        DrawLineDDA(hdc, pv[0].x, pv[0].y, pv[1].x, pv[1].y, RGB(255, 0, 0));
+    void run(HDC hdc, vector<Point>& pv, COLORREF c) {
+        DrawLineDDA(hdc, pv[0].x, pv[0].y, pv[1].x, pv[1].y, c);
     }
 };
 
 class BRES_LINE {
 public:
-    void run(HDC hdc, vector<Point>& pv) {
-        DrawLineBresenham(hdc, pv[0].x, pv[0].y, pv[1].x, pv[1].y, RGB(255, 0, 0));
+    void run(HDC hdc, vector<Point>& pv, COLORREF c) {
+        DrawLineBresenham(hdc, pv[0].x, pv[0].y, pv[1].x, pv[1].y, c);
     }
 };
 
 class Param_LINE {
 public:
-    void run(HDC hdc, vector<Point>& pv) {
-        DrawLineParametric(hdc, pv[0].x, pv[0].y, pv[1].x, pv[1].y, RGB(255, 0, 0));
+    void run(HDC hdc, vector<Point>& pv, COLORREF c) {
+        DrawLineParametric(hdc, pv[0].x, pv[0].y, pv[1].x, pv[1].y, c);
     }
 };
 
 class Cardinal_Spline {
 public:
-    void run(HDC hdc, vector<Point>& pv) {
-        CardinalSpline(hdc, pv, 0.0, 1000, RGB(255, 0, 0));
+    void run(HDC hdc, vector<Point>& pv, COLORREF c) {
+        CardinalSpline(hdc, pv, 0.0, 1000, c);
     }
 };
 
 class Convex_fill {
 public:
-    void run(HDC hdc, vector<Point>& pv) {
-        ConvexFill(hdc, pv, pv.size(), RGB(255, 0, 0));
+    void run(HDC hdc, vector<Point>& pv, COLORREF c) {
+        ConvexFill(hdc, pv, pv.size(), c);
     }
 };
 
 class Non_Convex_fill {
 public:
-    void run(HDC hdc, vector<Point>& pv) {
-        NonConvexFill(hdc, pv, pv.size(), RGB(255, 0, 0));
+    void run(HDC hdc, vector<Point>& pv, COLORREF c) {
+        NonConvexFill(hdc, pv, pv.size(), c);
     }
 };
 
 class ellipse_Direct {
 public:
-    void run(HDC hdc, vector<Point>& pv) {
-        Ellipse_Direct(hdc, pv , RGB(255, 0, 0));
+    void run(HDC hdc, vector<Point>& pv, COLORREF c) {
+        Ellipse_Direct(hdc, pv , c);
     }
 };
 
 class ellipse_Polar {
 public:
-    void run(HDC hdc, vector<Point>& pv) {
-        Ellipse_polar(hdc, pv, RGB(255, 0, 0));
+    void run(HDC hdc, vector<Point>& pv, COLORREF c) {
+        Ellipse_polar(hdc, pv, c);
     }
 };
 
 class ellipse_Midpoint {
 public:
-    void run(HDC hdc, vector<Point>& pv) {
-        Ellipse_Midpoint(hdc, pv , RGB(255, 0, 0));
+    void run(HDC hdc, vector<Point>& pv, COLORREF c) {
+        Ellipse_Midpoint(hdc, pv , c);
     }
 }; 
 
@@ -383,7 +408,7 @@ input_requirements_base* current_input_req = nullptr;
 
 Algorithm chosen_algo = NONE;
 HBITMAP g_hLoadedBitmap = nullptr;
-
+COLORREF chosen_color;
 int xg, yg;
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -512,19 +537,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         case Draw_Line_DDA:
         {
             chosen_algo = LINE_DDA;
-            current_input_req = new input_requirements<DDA_LINE>(chosen_algo, 2);
+            current_input_req = new input_requirements<DDA_LINE>(chosen_algo, 2, chosen_color);
         }
         break;
         case Draw_Line_Bres:
         {
             chosen_algo = LINE_BRES;
-            current_input_req = new input_requirements<BRES_LINE>(chosen_algo, 2);
+            current_input_req = new input_requirements<BRES_LINE>(chosen_algo, 2, chosen_color);
         }
         break;
         case Draw_Line_Param:
         {
             chosen_algo = LINE_PARAM;
-            current_input_req = new input_requirements<Param_LINE>(chosen_algo, 2);
+            current_input_req = new input_requirements<Param_LINE>(chosen_algo, 2, chosen_color);
 
         }
         break;
@@ -532,13 +557,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         case Draw_Cardinal_Spline:
         {
             chosen_algo = CARDINAL_SPLINE;
-            current_input_req = new input_requirements<Cardinal_Spline>(chosen_algo, 6);
+            current_input_req = new input_requirements<Cardinal_Spline>(chosen_algo, 6, chosen_color);
         }
         break;
         case ellipse_direct:
         {
             chosen_algo = ELLIPSE_DIRECT;
-            current_input_req = new input_requirements<ellipse_Direct>(chosen_algo, 2);
+            current_input_req = new input_requirements<ellipse_Direct>(chosen_algo, 2, chosen_color);
 
         }
         break;
@@ -546,31 +571,35 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         case ellipse_polar:
         {
             chosen_algo = ELLIPSE_POLAR;
-            current_input_req = new input_requirements<ellipse_Polar>(chosen_algo, 2);
+            current_input_req = new input_requirements<ellipse_Polar>(chosen_algo, 2, chosen_color);
         }
         break;
 
         case ellipse_midpoint:
         {
             chosen_algo = ELLIPSE_MIDPOINT;
-            current_input_req = new input_requirements<ellipse_Midpoint>(chosen_algo, 2);
+            current_input_req = new input_requirements<ellipse_Midpoint>(chosen_algo, 2, chosen_color);
         }
         break;
 
         case Convex_Fill:
         {
             chosen_algo = CONVEX_FILL;
-            current_input_req = new input_requirements<Convex_fill>(chosen_algo, 5);
+            current_input_req = new input_requirements<Convex_fill>(chosen_algo, 5, chosen_color);
         }
         break;
 
         case Non_Convex_Fill:
         {
             chosen_algo = NON_CONVEX_FILL;
-            current_input_req = new input_requirements<Non_Convex_fill>(chosen_algo, 8);
+            current_input_req = new input_requirements<Non_Convex_fill>(chosen_algo, 8, chosen_color);
         }
         break;
-
+        case Choose_Color:
+        {
+            chosen_color =PickColor(hWnd);
+        }
+        break;
         case IDM_ABOUT:
             DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
         break;
@@ -728,8 +757,8 @@ void Add_Theme_Menu(HWND hWnd) {
     AppendMenuW(MainMenu, MF_POPUP, (UINT_PTR)File, L"File");
     AppendMenuW(MainMenu, MF_POPUP, (UINT_PTR)Draw, L"Draw");
     AppendMenuW(MainMenu, MF_POPUP, (UINT_PTR)Fill, L"Fill");
-    AppendMenuW(MainMenu, MF_POPUP, (UINT_PTR)Theme, L"Theme"); //id is sent to wndproc in wparam
+    AppendMenuW(MainMenu, MF_POPUP, (UINT_PTR)Theme, L"Theme"); 
     AppendMenuW(MainMenu, MF_POPUP, (UINT_PTR)Cursor, L"Cursor");
-
+    AppendMenuW(MainMenu, MF_STRING, Choose_Color, L"Choose Color");
     SetMenu(hWnd, MainMenu);
 }
