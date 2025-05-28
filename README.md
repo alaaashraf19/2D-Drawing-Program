@@ -59,7 +59,7 @@ A Windows desktop application written in C++ for interactive 2D drawing and grap
 ```bash
 # Clone repo
 git clone https://github.com/alaaashraf19/2D-Drawing-Program.git
-cd 2d-drawing-cpp
+cd 2D-Drawing-Program
 
 # Build using your method (Visual Studio project - Windows Desktop Application C++ / CMake etc.)
 # For example, open the `.sln` file in Visual Studio and build
