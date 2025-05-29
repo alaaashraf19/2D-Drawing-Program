@@ -19,3 +19,6 @@ void NonConvexFill(HDC hdc, std::vector<Point> v, int n, COLORREF c);
 
 // Filling Rectangle using bazier
 void fillRecBaz(HDC hdc, Point p[], int n, COLORREF c);
+
+//Filling Sqaure using Hermite
+void filleHermiteSq(HDC hdc, Point p[], int n, COLORREF c);
