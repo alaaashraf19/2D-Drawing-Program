@@ -4,6 +4,7 @@
 #include "framework.h"
 #include "Graphics Project- V1.h"
 #include "Line/lines.h"
+#include "Circle/Circle.h"
 #include "filling/filling.h"
 #include "Curves/curves.h"
 #include "Ellipse/Ellipse.h"
@@ -38,6 +39,12 @@
 #define clip_line_rec 225
 #define clip_line_square 226
 #define clip_polygon 227
+
+#define circle_direct 228
+#define circle_polar 229
+#define circle_polar_iter 230
+#define circle_midpoint 231
+#define circle_modified_mid 232
 
 #define SAVE_DC 11
 #define RESTORE_DC 12
@@ -285,6 +292,11 @@ enum Algorithm {
     LINE_DDA,
     LINE_BRES,
     LINE_PARAM,
+    CIRCLE_DIRECT,
+    CIRCLE_POLAR,
+    CIRCLE_POLAR_ITER,
+    CIRCLE_MIDPOINT,
+    CIRCLE_MODIFIED_MID,
     CARDINAL_SPLINE,
     CONVEX_FILL,
     NON_CONVEX_FILL,
@@ -370,6 +382,41 @@ class Param_LINE {
 public:
     void run(HDC hdc, vector<Point>& pv, COLORREF c) {
         DrawLineParametric(hdc, pv[0].x, pv[0].y, pv[1].x, pv[1].y, c);
+    }
+};
+
+class Circle_Direct {
+public:
+    void run(HDC hdc, vector<Point>& pv, COLORREF c) {
+        DrawCircle(hdc, pv[0].x, pv[0].y, pv[1].x, pv[1].y, c);
+    }
+};
+
+class Circle_Polar {
+public:
+    void run(HDC hdc, vector<Point>& pv, COLORREF c) {
+        DrawCirclePolar(hdc, pv[0].x, pv[0].y, pv[1].x, pv[1].y, c);
+    }
+};
+
+class Circle_Polar_Iter {
+public:
+    void run(HDC hdc, vector<Point>& pv, COLORREF c) {
+        DrawCirclePolarIter(hdc, pv[0].x, pv[0].y, pv[1].x, pv[1].y, c);
+    }
+};
+
+class Circle_Midpoint {
+public:
+    void run(HDC hdc, vector<Point>& pv, COLORREF c) {
+        DrawCircleMidPoint1(hdc, pv[0].x, pv[0].y, pv[1].x, pv[1].y, c);
+    }
+};
+
+class Circle_Modified_Mid {
+public:
+    void run(HDC hdc, vector<Point>& pv, COLORREF c) {
+        DrawCircleMidPoint1(hdc, pv[0].x, pv[0].y, pv[1].x, pv[1].y, c);
     }
 };
 
@@ -620,6 +667,36 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         }
         break;
+        case circle_direct:
+        {
+            chosen_algo = CIRCLE_DIRECT;
+            current_input_req = new input_requirements<Circle_Direct>(chosen_algo, 2, chosen_color);
+        }
+        break;
+        case circle_polar:
+        {
+            chosen_algo = CIRCLE_POLAR;
+            current_input_req = new input_requirements<Circle_Polar>(chosen_algo, 2, chosen_color);
+        }
+        break;
+        case circle_polar_iter:
+        {
+            chosen_algo = CIRCLE_POLAR_ITER;
+            current_input_req = new input_requirements<Circle_Polar_Iter>(chosen_algo, 2, chosen_color);
+        }
+        break;
+        case circle_midpoint:
+        {
+            chosen_algo = CIRCLE_MIDPOINT;
+            current_input_req = new input_requirements<Circle_Midpoint>(chosen_algo, 2, chosen_color);
+        }
+        break;
+        case circle_modified_mid:
+        {
+            chosen_algo = CIRCLE_MODIFIED_MID;
+            current_input_req = new input_requirements<Circle_Modified_Mid>(chosen_algo, 2, chosen_color);
+        }
+        break;
         //case Rec_Flood_Fill:
         case Draw_Cardinal_Spline:
         {
@@ -740,6 +817,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         if (chosen_algo != NONE && current_input_req) {
             xg = LOWORD(lParam);
             yg = HIWORD(lParam);
+            SetPixel(hdc, xg, yg, chosen_color);
             current_input_req->pv.push_back(Point(xg, yg));
             if (current_input_req->pv.size() == current_input_req->req_pts) {
                 current_input_req->run(hdc);
@@ -848,11 +926,11 @@ void Add_Theme_Menu(HWND hWnd) {
     AppendMenuW(Line, MF_STRING, Draw_Line_Bres, L"Midpoint");
     AppendMenuW(Line, MF_STRING, Draw_Line_Param, L"Parametric");
 
-    AppendMenuW(Circle, MF_STRING, NULL, L"Direct");
-    AppendMenuW(Circle, MF_STRING, NULL, L"Polar");
-    AppendMenuW(Circle, MF_STRING, NULL, L"Iterative polar");
-    AppendMenuW(Circle, MF_STRING, NULL, L"Midpoint");
-    AppendMenuW(Circle, MF_STRING, NULL, L"Modified Midpoint");
+    AppendMenuW(Circle, MF_STRING, circle_direct, L"Direct");
+    AppendMenuW(Circle, MF_STRING, circle_polar, L"Polar");
+    AppendMenuW(Circle, MF_STRING, circle_polar_iter, L"Iterative polar");
+    AppendMenuW(Circle, MF_STRING, circle_midpoint, L"Midpoint");
+    AppendMenuW(Circle, MF_STRING, circle_modified_mid, L"Modified Midpoint");
 
 
     AppendMenuW(FloodFill, MF_STRING, NULL, L"Recursive");

@@ -127,6 +127,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Circle\Circle.h" />
     <ClInclude Include="Clipping\clipping.h" />
     <ClInclude Include="Curves\curves.h" />
     <ClInclude Include="Ellipse\Ellipse.h" />
@@ -139,6 +140,7 @@
     <ClInclude Include="utils.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Circle\Circle.cpp" />
     <ClCompile Include="Clipping\clipping.cpp" />
     <ClCompile Include="Curves\curves.cpp" />
     <ClCompile Include="Ellipse\Ellipse.cpp" />

@@ -35,6 +35,24 @@ void DrawHermiteCurve(HDC hdc, int x1, int y1, int u1, int v1, int x2, int y2, i
 
 }
 
+void DrawBezierCurve(HDC hdc, Point p1, Point p2, Point p3, Point p4, COLORREF c) {
+
+    int bezier_matrix[4][4] = { {-1,3,-3,1},{3,-6,3,0},{-3,3,0,0},{1,0,0,0} };
+    vector <int> x_vec = { p1.x, p2.x, p3.x, p4.x };
+    vector <int> y_vec = { p1.y, p2.y, p3.y, p4.y };
+
+    vector <int> x_param = vectorMatrixMultiplication(bezier_matrix, x_vec);
+    vector <int> y_param = vectorMatrixMultiplication(bezier_matrix, y_vec);
+
+    double step = 1.0 / max(abs(p4.x - p1.x), abs(p4.y - p1.y));
+    double x, y;
+    for (double t = 0.0; t <= 1; t += step) {
+        x = x_param[0] * pow(t, 3) + x_param[1] * pow(t, 2) + x_param[2] * t + x_param[3];
+        y = y_param[0] * pow(t, 3) + y_param[1] * pow(t, 2) + y_param[2] * t + y_param[3];
+        SetPixel(hdc, Round(x), Round(y), c);
+    }
+}
+
 void CardinalSpline(HDC hdc, const vector<Point>& points, double controlParameter, int numpts, COLORREF c) {
     int q_x1, q_y1, q_x2, q_y2;
     double t = (1 - controlParameter) / 2.0;
