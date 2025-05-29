@@ -179,7 +179,7 @@ void MydrawBazRec(HDC hdc, Point p1, Point p2, Point p3, Point p4, COLORREF c) {
     MydrawBazRec(hdc, p4, q3, r2, midPoint,c);
 }*/
 
-void fillRecBaz(HDC hdc, Point p[], int n, COLORREF c) {
+void fillRecBezier(HDC hdc, Point p[], int n, COLORREF c) {
     // Draw rectangle border
     DrawLineDDA(hdc, p[0].x, p[0].y, p[1].x, p[1].y, c);
     DrawLineDDA(hdc, p[0].x, p[0].y, p[3].x, p[3].y, c);
