@@ -259,3 +259,66 @@ void fillRecBaz(HDC hdc, Point p[], int n, COLORREF c) {
     }
 }
 
+//Hermite Square Filling
+vector<int> vectorMatrixMultiplication(int hmatrix[4][4], vector<int> g) {
+	vector<int> c(4);
+	int tmpSum = 0;
+	for (int i = 0; i < 4; i++) {
+		for (int j = 0; j < 4; j++) {//matrix loop
+			tmpSum += hmatrix[i][j] * g[j];
+		}
+		c[i] = tmpSum;
+		tmpSum = 0;
+	}
+	return c;
+}
+
+
+
+void DrawHermiteCurve(HDC hdc, int x1, int y1, int u1, int v1, int x2, int y2, int u2, int v2, int numpts, COLORREF c) {
+
+	int Hmatrix[4][4] = { {2,1,-2,1},{-3,-2,3,-1},{0,1,0,0},{1,0,0,0} };
+	vector<int> gX = { x1,u1,x2,u2 };
+	vector<int> gY = { y1,v1,y2,v2 };
+	vector<int> cX = vectorMatrixMultiplication(Hmatrix, gX);
+	vector<int> cy = vectorMatrixMultiplication(Hmatrix, gY);
+
+	double step = 1.0 / numpts;
+	double x, y;
+	for (double t = 0.0; t <= 1; t += step) {
+		x = cX[0] * pow(t, 3) + cX[1] * pow(t, 2) + cX[2] * t + cX[3];
+		y = cy[0] * pow(t, 3) + cy[1] * pow(t, 2) + cy[2] * t + cy[3];
+		SetPixel(hdc, Round(x), Round(y), c);
+	}
+
+}
+
+
+void filleHermiteSq(HDC hdc, Point p[], int n, COLORREF c) {
+	// Draw the rectangle borders
+	DrawLineDDA(hdc, p[0].x, p[0].y, p[1].x, p[1].y, c); // Top edge
+	DrawLineDDA(hdc, p[1].x, p[1].y, p[2].x, p[2].y, c); // Right edge
+	DrawLineDDA(hdc, p[2].x, p[2].y, p[3].x, p[3].y, c); // Bottom edge
+	DrawLineDDA(hdc, p[3].x, p[3].y, p[0].x, p[0].y, c); // Left edge
+
+	int xLeft = min(p[0].x, p[3].x);
+	int xRight = max(p[1].x, p[2].x);
+	int yTop = min(p[0].y, p[1].y);
+	int yBottom = max(p[2].y, p[3].y);
+
+	int u1 = 0, v1 = 50;   // Tangent at bottom point (p[3] to p[2])
+	int u2 = 0, v2 = -50;  // Tangent at top point (p[0] to p[1])
+
+	for (int x = xLeft; x <= xRight; x++) {
+		// Draw vertical Hermite from bottom to top
+		DrawHermiteCurve(hdc,
+			x, yBottom, 
+			u1, v1,     
+			x, yTop,    
+			u2, v2,      
+			500,        
+			c);          
+	}
+}
+
+
