@@ -6,6 +6,9 @@ void DrawLineDDA(HDC hdc, int x1, int y1, int x2, int y2, COLORREF c) {
     int dx = x2 - x1, dy = y2 - y1;
     SetPixel(hdc, x1, y1, c);
     if (abs(dx) >= abs(dy)) {
+        if (x1 > x2) {
+            swap(x1, x2); swap(y1, y2);
+        }
         double m = (double)dy / dx;
         int x = x1;
         double y = y1;
@@ -17,6 +20,10 @@ void DrawLineDDA(HDC hdc, int x1, int y1, int x2, int y2, COLORREF c) {
 
     }
     else {
+        if (y1 > y2) {
+            swap(x1, x2); swap(y1, y2);
+        }
+
         double mi = (double)dx / dy;
         int y = y1;
         double x = x1;

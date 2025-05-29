@@ -7,6 +7,7 @@
 #include "filling/filling.h"
 #include "Curves/curves.h"
 #include "Ellipse/Ellipse.h"
+#include "Clipping/clipping.h"
 #include "utils.h"
 #include "vector"
 #include <stdio.h>
@@ -31,6 +32,12 @@
 #define ellipse_midpoint 220
 
 #define Choose_Color 222
+
+#define clip_point_rec 223
+#define clip_point_square 224
+#define clip_line_rec 225
+#define clip_line_square 226
+#define clip_polygon 227
 
 #define SAVE_DC 11
 #define RESTORE_DC 12
@@ -284,6 +291,13 @@ enum Algorithm {
     ELLIPSE_DIRECT,
     ELLIPSE_POLAR,
     ELLIPSE_MIDPOINT,
+    CLIP_POINT_REC,
+    CLIP_POINT_SQUARE,
+    CLIP_LINE_REC,
+    CLIP_LINE_SQUARE,
+    CLIP_POLYGON,
+    DRAW_REC_WINDOW,
+    DRAW_SQUARE_WINDOW,
 };
 
 class input_requirements_base {
@@ -398,6 +412,59 @@ class ellipse_Midpoint {
 public:
     void run(HDC hdc, vector<Point>& pv, COLORREF c) {
         Ellipse_Midpoint(hdc, pv , c);
+    }
+}; 
+
+class Clip_Point_rec {
+public:
+    void run(HDC hdc, vector<Point>& pv, COLORREF c) {
+        point_clip(hdc, Window(0), pv[0].x, pv[0].y, c);
+    }
+}; 
+
+class Clip_Point_square {
+public:
+    void run(HDC hdc, vector<Point>& pv, COLORREF c) {
+        point_clip(hdc, Window(1), pv[0].x, pv[0].y, c);
+    }
+}; 
+
+class Clip_Line_rec {
+public:
+    void run(HDC hdc, vector<Point>& pv, COLORREF c) {
+        line_clip(hdc, Window(0), Point_out(pv[0].x, pv[0].y), Point_out(pv[1].x, pv[1].y), c);
+    }
+}; 
+
+class Clip_Line_square {
+public:
+    void run(HDC hdc, vector<Point>& pv, COLORREF c) {
+        line_clip(hdc, Window(1), Point_out(pv[0].x, pv[0].y), Point_out(pv[1].x, pv[1].y), c);
+    }
+}; 
+
+class Clip_Polygon {
+public:
+    void run(HDC hdc, vector<Point>& pv, COLORREF c) {
+        vector <Point_out> pv2;
+        for (int i = 0; i < pv.size(); i++) {
+            pv2.push_back(Point_out(pv[i].x, pv[i].y));
+        }
+        polygon_clip(hdc, Window(0), pv2, c);
+    }
+}; 
+
+class Draw_Rectangle_Window {
+public:
+    void run(HDC hdc, vector<Point>& pv, COLORREF c) {
+        Draw_window(hdc, Window(0), c);
+    }
+}; 
+
+class Draw_Square_Window {
+public:
+    void run(HDC hdc, vector<Point>& pv, COLORREF c) {
+        Draw_window(hdc, Window(1), c);
     }
 }; 
 
@@ -595,6 +662,61 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             current_input_req = new input_requirements<Non_Convex_fill>(chosen_algo, 8, chosen_color);
         }
         break;
+        case clip_point_rec:
+        {
+            COLORREF color = PickColor(hWnd);
+            input_requirements_base* temp = new 
+                input_requirements<Draw_Rectangle_Window>(DRAW_REC_WINDOW, 0, color);
+            temp->run(hdc);
+
+            chosen_algo = CLIP_POINT_REC;
+            current_input_req = new input_requirements<Clip_Point_rec>(chosen_algo, 1, chosen_color);
+        }
+        break;
+        case clip_point_square:
+        {
+            COLORREF color = PickColor(hWnd);
+            input_requirements_base* temp = new 
+                input_requirements<Draw_Square_Window>(DRAW_SQUARE_WINDOW, 0, color);
+            temp->run(hdc);
+
+            chosen_algo = CLIP_POINT_SQUARE;
+            current_input_req = new input_requirements<Clip_Point_square>(chosen_algo, 1, chosen_color);
+        }
+        break;
+        case clip_line_rec:
+        {
+            COLORREF color = PickColor(hWnd);
+            input_requirements_base* temp = new 
+                input_requirements<Draw_Rectangle_Window>(DRAW_REC_WINDOW, 0, color);
+            temp->run(hdc);
+
+            chosen_algo = CLIP_LINE_REC;
+            current_input_req = new input_requirements<Clip_Line_rec>(chosen_algo, 2, chosen_color);
+        }
+        break;
+        case clip_line_square:
+        {
+            COLORREF color = PickColor(hWnd);
+            input_requirements_base* temp = new 
+                input_requirements<Draw_Square_Window>(DRAW_SQUARE_WINDOW, 0, color);
+            temp->run(hdc);
+
+            chosen_algo = CLIP_LINE_SQUARE;
+            current_input_req = new input_requirements<Clip_Line_square>(chosen_algo, 2, chosen_color);
+        }
+        break;
+        case clip_polygon:
+        {
+            COLORREF color = PickColor(hWnd);
+            input_requirements_base* temp = new 
+                input_requirements<Draw_Rectangle_Window>(DRAW_REC_WINDOW, 0, color);
+            temp->run(hdc);
+
+            chosen_algo = CLIP_POLYGON;
+            current_input_req = new input_requirements<Clip_Polygon>(chosen_algo, 5, chosen_color);
+        }
+        break;
         case Choose_Color:
         {
             chosen_color =PickColor(hWnd);
@@ -706,6 +828,9 @@ void Add_Theme_Menu(HWND hWnd) {
     HMENU Fill = CreateMenu();
     HMENU FloodFill = CreateMenu();
     HMENU ScanLineFilling = CreateMenu();
+    HMENU Clipping = CreateMenu();
+    HMENU Clip_Point = CreateMenu();
+    HMENU Clip_Line = CreateMenu();
     HMENU Theme = CreateMenu();
     HMENU Cursor = CreateMenu();
 
@@ -744,6 +869,15 @@ void Add_Theme_Menu(HWND hWnd) {
     AppendMenuW(Ellipse, MF_STRING, ellipse_polar, L"Polar");
     AppendMenuW(Ellipse, MF_STRING, ellipse_midpoint, L"Midpoint");
 
+    AppendMenuW(Clipping, MF_POPUP, (UINT_PTR)Clip_Point, L"Point");
+    AppendMenuW(Clipping, MF_POPUP, (UINT_PTR)Clip_Line, L"Line");
+    AppendMenuW(Clipping, MF_POPUP, clip_polygon, L"Polygon");
+
+    AppendMenuW(Clip_Point, MF_POPUP, clip_point_rec, L"Rectangle Window");
+    AppendMenuW(Clip_Point, MF_POPUP, clip_point_square, L"Square Window");
+
+    AppendMenuW(Clip_Line, MF_POPUP, clip_line_rec, L"Rectangle Window");
+    AppendMenuW(Clip_Line, MF_POPUP, clip_line_square, L"Square Window");
 
     AppendMenuW(Theme, MF_STRING, Set_Bkg_Light, L"Light");
     AppendMenuW(Theme, MF_STRING, Set_Bkg_Dark, L"Dark");
@@ -757,6 +891,7 @@ void Add_Theme_Menu(HWND hWnd) {
     AppendMenuW(MainMenu, MF_POPUP, (UINT_PTR)File, L"File");
     AppendMenuW(MainMenu, MF_POPUP, (UINT_PTR)Draw, L"Draw");
     AppendMenuW(MainMenu, MF_POPUP, (UINT_PTR)Fill, L"Fill");
+    AppendMenuW(MainMenu, MF_POPUP, (UINT_PTR)Clipping, L"Clip");
     AppendMenuW(MainMenu, MF_POPUP, (UINT_PTR)Theme, L"Theme"); 
     AppendMenuW(MainMenu, MF_POPUP, (UINT_PTR)Cursor, L"Cursor");
     AppendMenuW(MainMenu, MF_STRING, Choose_Color, L"Choose Color");

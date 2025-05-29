@@ -127,6 +127,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Clipping\clipping.h" />
     <ClInclude Include="Curves\curves.h" />
     <ClInclude Include="Ellipse\Ellipse.h" />
     <ClInclude Include="filling\filling.h" />
@@ -138,6 +139,7 @@
     <ClInclude Include="utils.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Clipping\clipping.cpp" />
     <ClCompile Include="Curves\curves.cpp" />
     <ClCompile Include="Ellipse\Ellipse.cpp" />
     <ClCompile Include="filling\filling.cpp" />
