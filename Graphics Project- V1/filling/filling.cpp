@@ -1,4 +1,5 @@
 #include "filling.h"
+#include "../Curves/curves.h"
 using namespace std;
 
 
@@ -91,7 +92,7 @@ void ConvexFill(HDC hdc, std::vector<Point> v, int n, COLORREF c) {
 }
 
 
-
+//Non convex fill
 struct node {
     double x;
     double slopeinv;
