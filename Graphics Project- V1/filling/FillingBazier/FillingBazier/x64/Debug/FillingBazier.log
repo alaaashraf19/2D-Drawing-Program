@@ -1,0 +1,22 @@
+﻿  FillingBazier.cpp
+C:\Users\salma\source\repos\FillingBazier\FillingBazier\FillingBazier.cpp(31,12): warning C4244: 'return': conversion from 'double' to 'int', possible loss of data
+C:\Users\salma\source\repos\FillingBazier\FillingBazier\FillingBazier.cpp(91,50): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+C:\Users\salma\source\repos\FillingBazier\FillingBazier\FillingBazier.cpp(91,42): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+C:\Users\salma\source\repos\FillingBazier\FillingBazier\FillingBazier.cpp(91,34): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+C:\Users\salma\source\repos\FillingBazier\FillingBazier\FillingBazier.cpp(91,26): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+C:\Users\salma\source\repos\FillingBazier\FillingBazier\FillingBazier.cpp(92,50): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+C:\Users\salma\source\repos\FillingBazier\FillingBazier\FillingBazier.cpp(92,42): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+C:\Users\salma\source\repos\FillingBazier\FillingBazier\FillingBazier.cpp(92,34): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+C:\Users\salma\source\repos\FillingBazier\FillingBazier\FillingBazier.cpp(92,26): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+C:\Users\salma\source\repos\FillingBazier\FillingBazier\FillingBazier.cpp(93,50): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+C:\Users\salma\source\repos\FillingBazier\FillingBazier\FillingBazier.cpp(93,42): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+C:\Users\salma\source\repos\FillingBazier\FillingBazier\FillingBazier.cpp(93,34): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+C:\Users\salma\source\repos\FillingBazier\FillingBazier\FillingBazier.cpp(93,26): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+C:\Users\salma\source\repos\FillingBazier\FillingBazier\FillingBazier.cpp(94,50): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+C:\Users\salma\source\repos\FillingBazier\FillingBazier\FillingBazier.cpp(94,42): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+C:\Users\salma\source\repos\FillingBazier\FillingBazier\FillingBazier.cpp(94,34): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+C:\Users\salma\source\repos\FillingBazier\FillingBazier\FillingBazier.cpp(94,26): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+C:\Users\salma\source\repos\FillingBazier\FillingBazier\FillingBazier.cpp(97,14): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+C:\Users\salma\source\repos\FillingBazier\FillingBazier\FillingBazier.cpp(98,17): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+C:\Users\salma\source\repos\FillingBazier\FillingBazier\FillingBazier.cpp(110,20): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+  FillingBazier.vcxproj -> C:\Users\salma\source\repos\FillingBazier\x64\Debug\FillingBazier.exe
