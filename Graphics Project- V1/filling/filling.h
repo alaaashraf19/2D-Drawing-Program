@@ -16,3 +16,6 @@ void ConvexFill(HDC hdc, std::vector<Point> v, int n, COLORREF c);
 
 //Non Convex Fill
 void NonConvexFill(HDC hdc, std::vector<Point> v, int n, COLORREF c);
+
+// Filling Rectangle using bazier
+void fillRecBaz(HDC hdc, Point p[], int n, COLORREF c);
