@@ -1,9 +1,7 @@
 #include "filling.h"
 using namespace std;
 
-int Round(double a) {
-    return (0.5 + a);
-}
+
 template<typename T>
 void mySwap(T &a,T &b) {
     T temp = a;
@@ -166,38 +164,8 @@ void NonConvexFill(HDC hdc, std::vector<Point> v, int n, COLORREF c) {
 double distance(Point p1, Point p2) {
     return sqrt((pow(p2.x - p1.x, 2)) + pow(p2.y - p1.y, 2));
 }
-void DrawLineDDA(HDC hdc, int x1, int y1, int x2, int y2, COLORREF c)
-{
-    int dx = x2 - x1, dy = y2 - y1;
-    SetPixel(hdc, x1, y1, c);
-    if (abs(dx) >= abs(dy))
-    {
-        double m = (double)dy / dx;
-        int x = x1;
-        double y = y1;
-        while (x < x2)
-        {
-            x++;
-            y += m;
-            SetPixel(hdc, x, Round(y), c);
-        }
-    }
-    else {
-        double mi = (double)dx / dy;
-        int y = y1;
-        double x = x1;
-        while (y < y2)
-        {
-            y++;
-            x += mi;
-            SetPixel(hdc, Round(x), y, c);
-        }
-
-    }
-}
-
-
-void drawBazRec(HDC hdc, Point p1, Point p2, Point p3, Point p4, COLORREF c) {
+/*
+void MydrawBazRec(HDC hdc, Point p1, Point p2, Point p3, Point p4, COLORREF c) {
     if (distance(p1, p4) <= 1)return;
     Point q1 = 0.5 * (p1 + p2);
     Point q2 = 0.5 * (p2 + p3);
@@ -206,9 +174,9 @@ void drawBazRec(HDC hdc, Point p1, Point p2, Point p3, Point p4, COLORREF c) {
     Point r2 = 0.5 * (q2 + q3);
     Point midPoint = 0.5 * (r1+  r2);
     SetPixel(hdc,Round(midPoint.x),Round(midPoint.y),c);
-    drawBazRec(hdc, p1, q1, r1, midPoint,c);
-    drawBazRec(hdc, p4, q3, r2, midPoint,c);
-}
+    MydrawBazRec(hdc, p1, q1, r1, midPoint,c);
+    MydrawBazRec(hdc, p4, q3, r2, midPoint,c);
+}*/
 
 void fillRecBaz(HDC hdc, Point p[], int n, COLORREF c) {
     // Draw rectangle border
@@ -236,52 +204,18 @@ void fillRecBaz(HDC hdc, Point p[], int n, COLORREF c) {
         Point control1 = Point((2 * left.x + right.x) / 3, y + offset / 2);
         Point control2 = Point((left.x + 2 * right.x) / 3, y - offset / 2);
       
-        drawBazRec(hdc, left, control1, control2, right, c);
+        DrawBezierCurve(hdc, left, control1, control2, right, c);
 
     }
-}
-
-//Hermite Square Filling
-vector<int> vectorMatrixMultiplication(int hmatrix[4][4], vector<int> g) {
-	vector<int> c(4);
-	int tmpSum = 0;
-	for (int i = 0; i < 4; i++) {
-		for (int j = 0; j < 4; j++) {//matrix loop
-			tmpSum += hmatrix[i][j] * g[j];
-		}
-		c[i] = tmpSum;
-		tmpSum = 0;
-	}
-	return c;
-}
-
-
-
-void DrawHermiteCurve(HDC hdc, int x1, int y1, int u1, int v1, int x2, int y2, int u2, int v2, int numpts, COLORREF c) {
-
-	int Hmatrix[4][4] = { {2,1,-2,1},{-3,-2,3,-1},{0,1,0,0},{1,0,0,0} };
-	vector<int> gX = { x1,u1,x2,u2 };
-	vector<int> gY = { y1,v1,y2,v2 };
-	vector<int> cX = vectorMatrixMultiplication(Hmatrix, gX);
-	vector<int> cy = vectorMatrixMultiplication(Hmatrix, gY);
-
-	double step = 1.0 / numpts;
-	double x, y;
-	for (double t = 0.0; t <= 1; t += step) {
-		x = cX[0] * pow(t, 3) + cX[1] * pow(t, 2) + cX[2] * t + cX[3];
-		y = cy[0] * pow(t, 3) + cy[1] * pow(t, 2) + cy[2] * t + cy[3];
-		SetPixel(hdc, Round(x), Round(y), c);
-	}
-
 }
 
 
 void filleHermiteSq(HDC hdc, Point p[], int n, COLORREF c) {
 	// Draw the rectangle borders
-	DrawLineDDA(hdc, p[0].x, p[0].y, p[1].x, p[1].y, c); // Top edge
-	DrawLineDDA(hdc, p[1].x, p[1].y, p[2].x, p[2].y, c); // Right edge
-	DrawLineDDA(hdc, p[2].x, p[2].y, p[3].x, p[3].y, c); // Bottom edge
-	DrawLineDDA(hdc, p[3].x, p[3].y, p[0].x, p[0].y, c); // Left edge
+    DrawLineDDA(hdc, p[0].x, p[0].y, p[1].x, p[1].y, c); // Top edge
+    DrawLineDDA(hdc, p[1].x, p[1].y, p[2].x, p[2].y, c); // Right edge
+    DrawLineDDA(hdc, p[2].x, p[2].y, p[3].x, p[3].y, c); // Bottom edge
+    DrawLineDDA(hdc, p[3].x, p[3].y, p[0].x, p[0].y, c); // Left edge
 
 	int xLeft = min(p[0].x, p[3].x);
 	int xRight = max(p[1].x, p[2].x);
@@ -293,7 +227,7 @@ void filleHermiteSq(HDC hdc, Point p[], int n, COLORREF c) {
 
 	for (int x = xLeft; x <= xRight; x++) {
 		// Draw vertical Hermite from bottom to top
-		DrawHermiteCurve(hdc,
+        DrawHermiteCurve(hdc,
 			x, yBottom, 
 			u1, v1,     
 			x, yTop,    
