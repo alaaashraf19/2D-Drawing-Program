@@ -1,24 +1,6 @@
 #include "filling.h"
 using namespace std;
 
-struct Point {
-    double x, y;
-
-    Point(double x = 0, double y = 0) : x{ x }, y{ y } {};
-};
-
-
-Point operator*(double a, const Point& p) {
-    return Point(a * p.x, a * p.y);
-}
-
-
-Point operator+(const Point& p, const Point& p2) {
-    return Point(p2.x + p.x, p2.y + p.y);
-}
-
-
-
 int Round(double a) {
     return (0.5 + a);
 }
