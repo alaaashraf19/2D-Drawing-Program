@@ -767,8 +767,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
         case fill_rectangle_bazier:
         {
-            chosen_algo = FILL_SQUARE_HERMITE;
-            current_input_req = new input_requirements<Fill_Square_Hermite>(chosen_algo, 4, chosen_color);
+            chosen_algo = FILL_RECTANGLE_BAZIER;
+            current_input_req = new input_requirements<Fill_Rectangle_Bazier>(chosen_algo, 4, chosen_color);
         }
         break;
         //case Rec_Flood_Fill:
@@ -1017,7 +1017,8 @@ void Add_Theme_Menu(HWND hWnd) {
     AppendMenuW(Fill, MF_POPUP, (UINT_PTR)ScanLineFilling, L"Scan Line Fill");
     AppendMenuW(Fill, MF_STRING, fill_circle_line, L"Fill Circle Quarter (Lines)");
     AppendMenuW(Fill, MF_STRING, fill_circle_circles, L"Fill Circle Quarter (Circles)");
-    AppendMenuW(Fill, MF_STRING, fill_square_hermite, L"Fill Circle Quarter (Circles)");
+    AppendMenuW(Fill, MF_STRING, fill_square_hermite, L"Fill Sqaure Hermite");
+    AppendMenuW(Fill, MF_STRING, fill_rectangle_bazier, L"Fill Rectangle Bazier");
 
 
     AppendMenuW(Ellipse, MF_STRING, ellipse_direct, L"Direct");
