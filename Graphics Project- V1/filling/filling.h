@@ -7,8 +7,9 @@
 #include <list> 
 #include "../utils.h"
 #include "../Line/lines.h"
-using namespace std;
-void RecFloodFill(HDC hdc, int x, int y, COLORREF bc, COLORREF fc);
+#include "../Curves/curves.h"
+
+; void RecFloodFill(HDC hdc, int x, int y, COLORREF bc, COLORREF fc);
 void NonRecFloodFill(HDC hdc, int x, int y, COLORREF bc, COLORREF fc);
 
 ///Convex Filling
