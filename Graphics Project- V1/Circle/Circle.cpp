@@ -1,4 +1,6 @@
 #include "Circle.h"
+#include "../Line/lines.h"
+
 
 void Draw8Points(HDC hdc, int xc, int yc, int x, int y, COLORREF c) {
 	SetPixel(hdc, xc + x, yc + y, c);
@@ -98,23 +100,109 @@ void DrawCircleMidPoint2(HDC hdc, int xc, int yc, int x1, int y1, COLORREF c) {
 	}
 }
 
-//void fillQrtr(HDC hdc, int xc, int yc, int r, COLORREF c) {
-//	int x = 0, y = r, d = 1 - r;
-//	int d1 = 3, d2 = 5 - 2 * r;
-//	while (x < y) {
-//		if (d < 0) {
-//			d += d1;
-//		}
-//		else {
-//			d += d2;
-//			d2 += 2;
-//			y--;
-//		}
-//
-//		d1 += 2;
-//		d2 += 2;
-//		x++;
-//		DrawLineDDA(hdc, xc, yc, xc + x, yc - y, c);
-//		DrawLineDDA(hdc, xc, yc, xc - x, yc + y, c);
-//	}
-//}
+void fillQrtr_line(HDC hdc, int xc, int yc, int x1, int y1, int x2, int y2, COLORREF c) {
+	double dxsq = pow(xc - x1, 2);
+	double dysq = pow(yc - y1, 2);
+	double r = sqrt(dxsq + dysq);
+
+	int x = 0, y = r, d = 1 - r;
+	int d1 = 3, d2 = 5 - 2 * r;
+	DrawCircleMidPoint2(hdc, xc, yc, x1, y1, c);
+
+	int pos;
+	if (x2 >= xc && y2 >= yc) pos = 0;
+	else if (x2 < xc && y2 >= yc) pos = 1;
+	else if (x2 < xc && y2 < yc) pos = 2;
+	else pos = 3;
+
+	while (x < y) {
+		if (d < 0) {
+			d += d1;
+		}
+		else {
+			d += d2;
+			d2 += 2;
+			y--;
+		}
+
+		d1 += 2;
+		d2 += 2;
+		x++;
+
+		switch (pos) {
+		case 0:
+			DrawLineDDA(hdc, xc, yc, xc + x, yc + y, c);
+			DrawLineDDA(hdc, xc, yc, xc + y, yc + x, c);
+			break;
+		case 1:
+			DrawLineDDA(hdc, xc, yc, xc - x, yc + y, c);
+			DrawLineDDA(hdc, xc, yc, xc - y, yc + x, c);
+			break;
+		case 2:
+			DrawLineDDA(hdc, xc, yc, xc - x, yc - y, c);
+			DrawLineDDA(hdc, xc, yc, xc - y, yc - x, c);
+			break;
+		case 3:
+			DrawLineDDA(hdc, xc, yc, xc + x, yc - y, c);
+			DrawLineDDA(hdc, xc, yc, xc + y, yc - x, c);
+			break;
+		}
+	}
+}
+
+void fillQrtr_circle(HDC hdc, int xc, int yc, int x1, int y1, int x2, int y2, COLORREF c) {
+	double dxsq = pow(xc - x1, 2);
+	double dysq = pow(yc - y1, 2);
+	double r = sqrt(dxsq + dysq);
+
+	int x, y, d;
+	int d1 = 3, d2;
+	DrawCircleMidPoint2(hdc, xc, yc, x1, y1, c);
+
+	int pos;
+	if (x2 >= xc && y2 >= yc) pos = 0;
+	else if (x2 < xc && y2 >= yc) pos = 1;
+	else if (x2 < xc && y2 < yc) pos = 2;
+	else pos = 3;
+
+	while (r > 0) {
+		x = 0;
+		y = r;
+		d = 1 - r;
+		d2 = 5 - 2 * r;
+		while (x < y) {
+			if (d < 0) {
+				d += d1;
+			}
+			else {
+				d += d2;
+				d2 += 2;
+				y--;
+			}
+
+			d1 += 2;
+			d2 += 2;
+			x++;
+			
+			switch (pos) {
+			case 0:
+				SetPixel(hdc, xc + x, yc + y, c);
+				SetPixel(hdc, xc + y, yc + x, c);
+				break;
+			case 1:
+				SetPixel(hdc, xc - x, yc + y, c);
+				SetPixel(hdc, xc - y, yc + x, c);
+				break;
+			case 2:
+				SetPixel(hdc, xc - x, yc - y, c);
+				SetPixel(hdc, xc - y, yc - x, c);
+				break;
+			case 3:
+				SetPixel(hdc, xc + x, yc - y, c);
+				SetPixel(hdc, xc + y, yc - x, c);
+				break;
+			}
+		}
+		r--;	//decrease R each rotation
+	}
+}

@@ -46,6 +46,9 @@
 #define circle_midpoint 231
 #define circle_modified_mid 232
 
+#define fill_circle_line 233
+#define fill_circle_circles 234
+
 #define SAVE_DC 11
 #define RESTORE_DC 12
 
@@ -297,6 +300,8 @@ enum Algorithm {
     CIRCLE_POLAR_ITER,
     CIRCLE_MIDPOINT,
     CIRCLE_MODIFIED_MID,
+    FILL_CIRCLE_LINE,
+    FILL_CIRCLE_CIRCLES,
     CARDINAL_SPLINE,
     CONVEX_FILL,
     NON_CONVEX_FILL,
@@ -417,6 +422,20 @@ class Circle_Modified_Mid {
 public:
     void run(HDC hdc, vector<Point>& pv, COLORREF c) {
         DrawCircleMidPoint1(hdc, pv[0].x, pv[0].y, pv[1].x, pv[1].y, c);
+    }
+};
+
+class Fill_Circle_Lines {
+public:
+    void run(HDC hdc, vector<Point>& pv, COLORREF c) {
+        fillQrtr_line(hdc, pv[0].x, pv[0].y, pv[1].x, pv[1].y, pv[2].x, pv[2].y, c);
+    }
+};
+
+class Fill_Circle_Circles {
+public:
+    void run(HDC hdc, vector<Point>& pv, COLORREF c) {
+        fillQrtr_circle(hdc, pv[0].x, pv[0].y, pv[1].x, pv[1].y, pv[2].x, pv[2].y, c);
     }
 };
 
@@ -697,6 +716,26 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             current_input_req = new input_requirements<Circle_Modified_Mid>(chosen_algo, 2, chosen_color);
         }
         break;
+        case fill_circle_line:
+        {
+            /*input_requirements_base* temp = new
+                input_requirements<Circle_Modified_Mid>(CIRCLE_MODIFIED_MID, 2, chosen_color);
+            temp->run(hdc);*/
+
+            chosen_algo = FILL_CIRCLE_LINE;
+            current_input_req = new input_requirements<Fill_Circle_Lines>(chosen_algo, 3, chosen_color);
+        }
+            break;
+        case fill_circle_circles:
+        {
+            /*input_requirements_base* temp = new
+                input_requirements<Circle_Modified_Mid>(CIRCLE_MODIFIED_MID, 2, chosen_color);
+            temp->run(hdc);*/
+
+            chosen_algo = FILL_CIRCLE_CIRCLES;
+            current_input_req = new input_requirements<Fill_Circle_Circles>(chosen_algo, 3, chosen_color);
+        }
+            break;
         //case Rec_Flood_Fill:
         case Draw_Cardinal_Spline:
         {
@@ -941,6 +980,8 @@ void Add_Theme_Menu(HWND hWnd) {
 
     AppendMenuW(Fill, MF_POPUP, (UINT_PTR)FloodFill, L"Flood Fill");
     AppendMenuW(Fill, MF_POPUP, (UINT_PTR)ScanLineFilling, L"Scan Line Fill");
+    AppendMenuW(Fill, MF_STRING, fill_circle_line, L"Fill Circle Quarter (Lines)");
+    AppendMenuW(Fill, MF_STRING, fill_circle_circles, L"Fill Circle Quarter (Circles)");
 
 
     AppendMenuW(Ellipse, MF_STRING, ellipse_direct, L"Direct");
