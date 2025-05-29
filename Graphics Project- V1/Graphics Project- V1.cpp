@@ -49,6 +49,9 @@
 #define fill_circle_line 233
 #define fill_circle_circles 234
 
+#define fill_square_hermite 235
+#define fill_rectangle_bazier 236
+
 #define SAVE_DC 11
 #define RESTORE_DC 12
 
@@ -301,6 +304,8 @@ enum Algorithm {
     CIRCLE_MIDPOINT,
     CIRCLE_MODIFIED_MID,
     FILL_CIRCLE_LINE,
+    FILL_SQUARE_HERMITE,
+    FILL_RECTANGLE_BAZIER,
     FILL_CIRCLE_CIRCLES,
     CARDINAL_SPLINE,
     CONVEX_FILL,
@@ -534,6 +539,24 @@ public:
     }
 }; 
 
+class Fill_Square_Hermite {
+public:
+    void run(HDC hdc, vector<Point>& pv, COLORREF c) {
+        Point p[] = { pv[0],pv[1],pv[2],pv[3] };
+        filleHermiteSq(hdc,p, 4, c);
+
+    }
+};
+
+class Fill_Rectangle_Bazier {
+public:
+    void run(HDC hdc, vector<Point>& pv, COLORREF c) {
+        Point p[] = { pv[0],pv[1],pv[2],pv[3] };
+        fillRecBaz(hdc, p, 4, c);
+
+    };
+};
+
 //vector<shape*> all_drawn_shapes;
 
 
@@ -736,6 +759,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             current_input_req = new input_requirements<Fill_Circle_Circles>(chosen_algo, 3, chosen_color);
         }
             break;
+        case fill_square_hermite:
+        {
+            chosen_algo = FILL_SQUARE_HERMITE;
+            current_input_req = new input_requirements<Fill_Square_Hermite>(chosen_algo, 4, chosen_color);
+        }
+        break;
+        case fill_rectangle_bazier:
+        {
+            chosen_algo = FILL_SQUARE_HERMITE;
+            current_input_req = new input_requirements<Fill_Square_Hermite>(chosen_algo, 4, chosen_color);
+        }
+        break;
         //case Rec_Flood_Fill:
         case Draw_Cardinal_Spline:
         {
@@ -982,6 +1017,7 @@ void Add_Theme_Menu(HWND hWnd) {
     AppendMenuW(Fill, MF_POPUP, (UINT_PTR)ScanLineFilling, L"Scan Line Fill");
     AppendMenuW(Fill, MF_STRING, fill_circle_line, L"Fill Circle Quarter (Lines)");
     AppendMenuW(Fill, MF_STRING, fill_circle_circles, L"Fill Circle Quarter (Circles)");
+    AppendMenuW(Fill, MF_STRING, fill_square_hermite, L"Fill Circle Quarter (Circles)");
 
 
     AppendMenuW(Ellipse, MF_STRING, ellipse_direct, L"Direct");
