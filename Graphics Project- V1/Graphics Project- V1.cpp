@@ -945,7 +945,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         if (chosen_algo != NONE && current_input_req) {
             xg = LOWORD(lParam);
             yg = HIWORD(lParam);
-            SetPixel(hdc, xg, yg, chosen_color);
+             if(chosen_algo != CLIP_POINT_REC && chosen_algo != CLIP_POINT_SQUARE)
+                 SetPixel(hdc, xg, yg, chosen_color);
             current_input_req->pv.push_back(Point(xg, yg));
             if (current_input_req->pv.size() == current_input_req->req_pts) {
                 current_input_req->run(hdc);
