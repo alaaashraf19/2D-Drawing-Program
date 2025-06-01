@@ -51,6 +51,18 @@ void DrawBezierCurve(HDC hdc, Point p1, Point p2, Point p3, Point p4, COLORREF c
         y = y_param[0] * pow(t, 3) + y_param[1] * pow(t, 2) + y_param[2] * t + y_param[3];
         SetPixel(hdc, Round(x), Round(y), c);
     }
+
+    //another version of bezier
+    //for (float t = 0; t <= 1; t += 0.001) {
+    //    float u = 1 - t;
+
+    //    float x = u * u * u * p1.x + 3 * u * u * t * p2.x + 3 * u * t * t * p3.x + t * t * t * p4.x;
+    //    float y = u * u * u * p1.y + 3 * u * u * t * p2.y + 3 * u * t * t * p3.y + t * t * t * p4.y;
+
+
+    //    SetPixel(hdc, round(x), round(y), c);
+    //}
+
 }
 
 void CardinalSpline(HDC hdc, const vector<Point>& points, double controlParameter, int numpts, COLORREF c) {

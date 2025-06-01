@@ -566,8 +566,8 @@ public:
 class Fill_Square_Hermite {
 public:
     void run(HDC hdc, vector<Point>& pv, COLORREF c) {
-        Point p[] = { pv[0],pv[1],pv[2],pv[3] };
-        filleHermiteSq(hdc,p, 4, c);
+        //Point p[] = { pv[0],pv[1]};
+        filleHermiteSq(hdc,pv, 4, c);
 
     }
 };
@@ -575,8 +575,8 @@ public:
 class Fill_Rectangle_Bezier {
 public:
     void run(HDC hdc, vector<Point>& pv, COLORREF c) {
-        Point p[] = { pv[0],pv[1],pv[2],pv[3] };
-        fillRecBezier(hdc, p, 4, c);
+        //Point p[] = { pv[0],pv[1],pv[2],pv[3] };
+        fillRecBezier(hdc, pv, 2, c);
 
     };
 };
@@ -798,14 +798,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             chosen_algo = FILL_SQUARE_HERMITE;
             cout << "Filling a Sqaure with Hermite Curves\nYou should Enter 4 Points which are the side of the square.\n";
-            current_input_req = new input_requirements<Fill_Square_Hermite>(chosen_algo, 4, chosen_color);
+            current_input_req = new input_requirements<Fill_Square_Hermite>(chosen_algo, 2, chosen_color);
         }
         break;
         case fill_rectangle_bezier:
         {
             chosen_algo = FILL_RECTANGLE_BEZIER;
             cout << "Filling a rectangle with Hermite Curves\nYou should Enter 4 Points which are the side of the rectangle.\n";
-            current_input_req = new input_requirements<Fill_Rectangle_Bezier>(chosen_algo, 4, chosen_color);
+            current_input_req = new input_requirements<Fill_Rectangle_Bezier>(chosen_algo, 2, chosen_color);
         }
         break;
         //case Rec_Flood_Fill:
@@ -950,9 +950,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             current_input_req->pv.push_back(Point(xg, yg));
             if (current_input_req->pv.size() == current_input_req->req_pts) {
                 current_input_req->run(hdc);
-                delete current_input_req;
-                current_input_req = nullptr;
-                chosen_algo = NONE;
+                current_input_req->pv.clear();
+                //delete current_input_req;
+                //current_input_req = nullptr;
+                //chosen_algo = NONE;
             }
 
             ReleaseDC(hWnd, hdc);
