@@ -576,7 +576,7 @@ class Fill_Rectangle_Bezier {
 public:
     void run(HDC hdc, vector<Point>& pv, COLORREF c) {
         //Point p[] = { pv[0],pv[1],pv[2],pv[3] };
-        fillRecBezier(hdc, pv, 2, c);
+        fillRecBezier(hdc, pv, 4, c);
 
     };
 };
@@ -798,14 +798,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             chosen_algo = FILL_SQUARE_HERMITE;
             cout << "Filling a Sqaure with Hermite Curves\nYou should Enter 4 Points which are the side of the square.\n";
-            current_input_req = new input_requirements<Fill_Square_Hermite>(chosen_algo, 2, chosen_color);
+            current_input_req = new input_requirements<Fill_Square_Hermite>(chosen_algo, 4, chosen_color);
         }
         break;
         case fill_rectangle_bezier:
         {
             chosen_algo = FILL_RECTANGLE_BEZIER;
             cout << "Filling a rectangle with Hermite Curves\nYou should Enter 4 Points which are the side of the rectangle.\n";
-            current_input_req = new input_requirements<Fill_Rectangle_Bezier>(chosen_algo, 2, chosen_color);
+            current_input_req = new input_requirements<Fill_Rectangle_Bezier>(chosen_algo, 4, chosen_color);
         }
         break;
         //case Rec_Flood_Fill:
