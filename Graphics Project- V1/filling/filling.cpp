@@ -166,108 +166,54 @@ void NonConvexFill(HDC hdc, std::vector<Point> v, int n, COLORREF c) {
 double distance(Point p1, Point p2) {
     return sqrt((pow(p2.x - p1.x, 2)) + pow(p2.y - p1.y, 2));
 }
-/*
-void MydrawBazRec(HDC hdc, Point p1, Point p2, Point p3, Point p4, COLORREF c) {
-    if (distance(p1, p4) <= 1)return;
-    Point q1 = 0.5 * (p1 + p2);
-    Point q2 = 0.5 * (p2 + p3);
-    Point q3 = 0.5 * (p3 + p4);
-    Point r1 = 0.5 * (q1 + q2);
-    Point r2 = 0.5 * (q2 + q3);
-    Point midPoint = 0.5 * (r1+  r2);
-    SetPixel(hdc,Round(midPoint.x),Round(midPoint.y),c);
-    MydrawBazRec(hdc, p1, q1, r1, midPoint,c);
-    MydrawBazRec(hdc, p4, q3, r2, midPoint,c);
-}*/
 
 void fillRecBezier(HDC hdc, vector<Point> p, int n, COLORREF c) {
-    // Draw rectangle border
-//DrawLineDDA(hdc, p[0].x, p[0].y, p[1].x, p[1].y, c);
-//DrawLineDDA(hdc, p[0].x, p[0].y, p[3].x, p[3].y, c);
-//DrawLineDDA(hdc, p[1].x, p[1].y, p[2].x, p[2].y, c);
-//DrawLineDDA(hdc, p[3].x, p[3].y, p[2].x, p[2].y, c);
 
+    // Sort by X, then Y
+    sort(p.begin(), p.end(), [](Point a, Point b) {
+        if (a.x == b.x) return a.y < b.y;
+        return a.x < b.x;
+        });
 
-//int yTop = p[0].y;
-//int yBottom = p[3].y;
-//if (yTop > yBottom) std::swap(yTop, yBottom);
+    int left = p[0].x;
+    int right = p[3].x;
 
-//int height = yBottom - yTop;
-//int waveH = height / 4; // wave height
+    int minY = min(p[0].y, p[1].y, p[2].y, p[3].y);
+    int maxY = max(p[0].y, p[1].y, p[2].y, p[3].y);
 
+    for (int x = left; x <= right; x++) {
+        Point start = { x, minY };
+        Point end = { x, maxY };
 
+        // Example control points to create vertical wave
+        Point ctrl1 = { x - 10, minY + (maxY - minY) / 3 };
+        Point ctrl2 = { x + 10, minY + 2 * (maxY - minY) / 3 };
 
-//for (double y = yTop; y <= yBottom; y+=0.5) {
-//    Point left(p[0].x, y);
-//    Point right(p[1].x, y);
-
-//    int offset = waveH * sin((y - yTop) * 3.14 / height);  
-
-//    Point control1 = Point((2 * left.x + right.x) / 3, y + offset / 2);
-//    Point control2 = Point((left.x + 2 * right.x) / 3, y - offset / 2);
-//  
-//    DrawBezierCurve(hdc, left, control1, control2, right, c);
-
-//}
-
-    if (p[0].y > p[1].y)
-        swap(p[0], p[1]);
-
-        Point p1, p2;
-        p1.x = p[0].x, p1.y = p[0].y;
-        p2.x = p[1].x, p2.y = p[1].y;
-        //DrawBezierCurve(hdc, p1, p2, p1, p2, c);
-        for (int i = p[0].y; i <= p[1].y; i+=2) {
-            p1.x = p[0].x, p2.x = p[1].x;
-            p1.y = i, p2.y = i;
-            DrawBezierCurve(hdc, p1, p1, p2, p2, c);
-        }
-    
+        DrawBezierCurve(hdc, start, ctrl1, ctrl2, end, c);
+    }
 }
 
 
 
-
 void filleHermiteSq(HDC hdc, vector<Point> p, int n, COLORREF c) {
-	// Draw the rectangle borders
-    //DrawLineDDA(hdc, p[0].x, p[0].y, p[1].x, p[1].y, c); // Top edge
-    //DrawLineDDA(hdc, p[1].x, p[1].y, p[2].x, p[2].y, c); // Right edge
-    //DrawLineDDA(hdc, p[2].x, p[2].y, p[3].x, p[3].y, c); // Bottom edge
-    //DrawLineDDA(hdc, p[3].x, p[3].y, p[0].x, p[0].y, c); // Left edge
 
-	//int xLeft = min(p[0].x, p[3].x);
-	//int xRight = max(p[1].x, p[2].x);
-	//int yTop = min(p[0].y, p[1].y);
-	//int yBottom = max(p[2].y, p[3].y);
+    // Sort by X, then Y
+    sort(p.begin(), p.end(), [](Point a, Point b) {
+        if (a.x == b.x) return a.y < b.y;
+        return a.x < b.x;
+        });
 
-	//int u1 = 0, v1 = 50;   // Tangent at bottom point (p[3] to p[2])
-	//int u2 = 0, v2 = -50;  // Tangent at top point (p[0] to p[1])
+    int length = abs(p[1].x - p[2].x);
 
-	//for (int x = xLeft; x <= xRight; x++) {
-	//	// Draw vertical Hermite from bottom to top
- //       DrawHermiteCurve(hdc,
-	//		x, yBottom, 
-	//		u1, v1,     
-	//		x, yTop,    
-	//		u2, v2,      
-	//		500,        
-	//		c);          
-	//}
-    if (p[0].y > p[1].y)
-        swap(p[0], p[1]);
 
-    int length = (int)sqrt(pow(p[1].y - p[0].y, 2) + pow(p[1].x - p[0].x, 2)) * cos(45 * PI / 180.0);
-
-    if (p[0].x > p[1].x) {
-        DrawHermiteCurve(hdc, p[0].x, p[0].y,0,0, p[0].x, p[0].y + length, 0, 0, 500,c);
-        for (int i = p[0].x; i > p[0].x - length; --i) {
-            DrawHermiteCurve(hdc, i, p[0].y,0,0, i, p[0].y + length, 0, 0,500, c);
+    if (p[0].y > p[1].y) {
+        for (int y = p[0].y; y > p[0].y - length; --y) {
+            DrawHermiteCurve(hdc, p[0].x, y, 0, 0, p[0].x + length, y, 0, 0, 500, c);
         }
     }
     else {
-        DrawHermiteCurve(hdc, p[0].x, p[0].y,0,0, p[0].x, p[0].y + length, 0, 0,500, c);
-        for (int i = p[0].x; i < p[0].x + length; ++i) {
-            DrawHermiteCurve(hdc, i, p[0].y,0,0, i, p[0].y + length, 0, 0,500, c);
+        for (int y = p[0].y; y < p[0].y + length; ++y) {
+            DrawHermiteCurve(hdc, p[0].x, y, 0, 0, p[0].x + length, y, 0, 0, 500, c);
         }
     }
 }
