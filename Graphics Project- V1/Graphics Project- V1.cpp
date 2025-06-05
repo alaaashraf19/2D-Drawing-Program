@@ -311,6 +311,12 @@ COLORREF PickColor(HWND hwndParent) {
 
 /////////////////////////////////////////////////////////
 
+int takeInput() {
+    int n;
+    cout << "Enter number of points: ";
+    cin >> n;
+    return n;
+}
 
 void Add_Theme_Menu(HWND);
 HMENU MainMenu;
@@ -746,21 +752,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             
             chosen_algo = LINE_DDA;
-            cout << "Drawing a line with DDA.\nEnter 2 Points.\n";
+            cout << "Drawing a line with DDA.\nDraw 2 Points.\n";
             current_input_req = new input_requirements<DDA_LINE>(chosen_algo, 2, chosen_color);
         }
         break;
         case Draw_Line_Bres:
         {
             chosen_algo = LINE_BRES;
-            cout << "Drawing a line with bresenham.\nEnter 2 Points.\n";
+            cout << "Drawing a line with bresenham.\nDraw 2 Points.\n";
             current_input_req = new input_requirements<BRES_LINE>(chosen_algo, 2, chosen_color);
         }
         break;
         case Draw_Line_Param:
         {
             chosen_algo = LINE_PARAM;
-            cout << "Drawing a line with parametric.\nEnter 2 Points.\n";
+            cout << "Drawing a line with parametric.\nDraw 2 Points.\n";
             current_input_req = new input_requirements<Param_LINE>(chosen_algo, 2, chosen_color);
 
         }
@@ -768,70 +774,70 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         case circle_direct:
         {
             chosen_algo = CIRCLE_DIRECT;
-            cout << "Drawing a Circle with the Direct Method\nYou should Enter 2 Points.\n";
+            cout << "Drawing a Circle with the Direct Method.\nDraw 1 Point for circle, and 1 point for R.\n";
             current_input_req = new input_requirements<Circle_Direct>(chosen_algo, 2, chosen_color);
         }
         break;
         case circle_polar:
         {
             chosen_algo = CIRCLE_POLAR;
-            cout << "Drawing a Circle with the Polar Method\nYou should Enter 2 Points.\n";
+            cout << "Drawing a Circle with the Polar Method.\nDraw 1 Point for circle, and 1 point for R.\n";
             current_input_req = new input_requirements<Circle_Polar>(chosen_algo, 2, chosen_color);
         }
         break;
         case circle_polar_iter:
         {
             chosen_algo = CIRCLE_POLAR_ITER;
-            cout << "Drawing a Circle with the Polar Iterative Method\nYou should Enter 2 Points.\n";
+            cout << "Drawing a Circle with the Polar Iterative Method.\nDraw 1 Point for circle, and 1 point for R.\n";
             current_input_req = new input_requirements<Circle_Polar_Iter>(chosen_algo, 2, chosen_color);
         }
         break;
         case circle_midpoint:
         {
             chosen_algo = CIRCLE_MIDPOINT;
-            cout << "Drawing a Circle with the MidPoint Method\nYou should Enter 2 Points.\n";
+            cout << "Drawing a Circle with the MidPoint Method.\nnDraw 1 Point for circle, and 1 point for R.\n";
             current_input_req = new input_requirements<Circle_Midpoint>(chosen_algo, 2, chosen_color);
         }
         break;
         case circle_modified_mid:
         {
             chosen_algo = CIRCLE_MODIFIED_MID;
-            cout << "Drawing a Circle with the Modified MidPoint Method\nYou should Enter 2 Points.\n";
+            cout << "Drawing a Circle with the Modified MidPoint Method.\nnDraw 1 Point for circle, and 1 point for R.\n";
             current_input_req = new input_requirements<Circle_Modified_Mid>(chosen_algo, 2, chosen_color);
         }
         break;
         case fill_circle_line:
         {
             chosen_algo = FILL_CIRCLE_LINE;
-            cout << "Filling a Circle with Lines\nYou should Enter 3 Points.\n2 Points for the circle and 1 point to represnt the quarter\n";
+            cout << "Filling a Circle with Lines.\nDraw 1 Point for center, 1 Point for R, and 1 point to represnt the quarter.\n";
             current_input_req = new input_requirements<Fill_Circle_Lines>(chosen_algo, 3, chosen_color);
         }
             break;
         case fill_circle_circles:
         {
             chosen_algo = FILL_CIRCLE_CIRCLES;
-            cout << "Filling a Circle with Circles\nYou should Enter 3 Points.\n2 Points for the circle and 1 point to represnt the quarter\n";
+            cout << "Filling a Circle with Circles\nDraw 1 Point for center, 1 Point for R, and 1 point to represnt the quarter.\n";
             current_input_req = new input_requirements<Fill_Circle_Circles>(chosen_algo, 3, chosen_color);
         }
             break;
         case fill_square_hermite:
         {
             chosen_algo = FILL_SQUARE_HERMITE;
-            cout << "Filling a Sqaure with Hermite Curves\nYou should Enter 4 Points which are the side of the square.\n";
+            cout << "Filling a Sqaure with Hermite Curves.\nDraw Top_Left and Bottom_Right Points for diagonal of the square.\n";
             current_input_req = new input_requirements<Fill_Square_Hermite>(chosen_algo, 4, chosen_color);
         }
         break;
         case fill_rectangle_bezier:
         {
             chosen_algo = FILL_RECTANGLE_BEZIER;
-            cout << "Filling a rectangle with Hermite Curves\nYou should Enter 4 Points which are the side of the rectangle.\n";
+            cout << "Filling a rectangle with Hermite Curves.\nDraw Top_Left and Bottom_Right Points for diagonal of the rectangle.\n";
             current_input_req = new input_requirements<Fill_Rectangle_Bezier>(chosen_algo, 4, chosen_color);
         }
         break;
         case Non_Rec_Flood_Fill:
         {
             chosen_algo = NON_REC_FLOOD_FILL;
-            cout << "Filling using Non Recursive FloodFill. You should click inside 1 shape to fill\n";
+            cout << "Filling using Non Recursive FloodFill.\nDraw 1 Point inside 1 shape to fill.\n";
             current_input_req = new input_requirements<NonRec_Flood_fill>(chosen_algo, 1, chosen_color);
             chosen_fill_color = PickColor(hWnd);
         }
@@ -839,22 +845,24 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         case Rec_Flood_Fill:
         {
             chosen_algo = REC_FLOOD_FILL;
-            cout << "Filling using Recursive FloodFill. You should click inside 1 shape to fill\n";
+            cout << "Filling using Recursive FloodFill.\nDraw 1 Point inside 1 shape to fill.\n";
             current_input_req = new input_requirements<Rec_Flood_fill>(chosen_algo, 1, chosen_color);
             chosen_fill_color = PickColor(hWnd);
         }
         break;
         case Draw_Cardinal_Spline:
         {
+            cout << "Drawing Cardinal Splines.\n";
+            int n = takeInput();
             chosen_algo = CARDINAL_SPLINE;
-            cout << "Drawing Cardinal Splines. You should enter 6 points for the spline\n";
-            current_input_req = new input_requirements<Cardinal_Spline>(chosen_algo, 6, chosen_color);
+            cout << "Draw " << n << " points for the spline.\n";
+            current_input_req = new input_requirements<Cardinal_Spline>(chosen_algo, n, chosen_color);
         }
         break;
         case ellipse_direct:
         {
             chosen_algo = ELLIPSE_DIRECT;
-            cout << "Drawing Ellipse with the direct method. You should enter 2 points for the ellipse\n";
+            cout << "Drawing Ellipse with the direct method.\nDraw 2 Point for diagonal of the ellipse.\n";
             current_input_req = new input_requirements<ellipse_Direct>(chosen_algo, 2, chosen_color);
 
         }
@@ -863,7 +871,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         case ellipse_polar:
         {
             chosen_algo = ELLIPSE_POLAR;
-            cout << "Drawing Ellipse with the polar method. You should enter 2 points for the ellipse\n";
+            cout << "Drawing Ellipse with the polar method.\nDraw 2 Point for diagonal of the ellipse.\n";
             current_input_req = new input_requirements<ellipse_Polar>(chosen_algo, 2, chosen_color);
         }
         break;
@@ -871,93 +879,109 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         case ellipse_midpoint:
         {
             chosen_algo = ELLIPSE_MIDPOINT;
-            cout << "Drawing Ellipse with the MidPoint method. You should enter 2 points for the ellipse\n";
+            cout << "Drawing Ellipse with the MidPoint method.\nDraw 2 Point for diagonal of the ellipse.\n";
             current_input_req = new input_requirements<ellipse_Midpoint>(chosen_algo, 2, chosen_color);
         }
         break;
 
         case Convex_Fill:
         {
+            cout << "Filling using Convex Fill.\n";
+            int n = takeInput();
             chosen_algo = CONVEX_FILL;
-            cout << "Filling using Convex Fill. You should enter 5 points for the polygon.\n";
-            current_input_req = new input_requirements<Convex_fill>(chosen_algo, 5, chosen_color);
+            cout << "Draw " << n << " points for the polygon.\n";
+            current_input_req = new input_requirements<Convex_fill>(chosen_algo, n, chosen_color);
         }
         break;
 
         case Non_Convex_Fill:
         {
+            cout << "Filling using Non-Convex Fill.\n";
+            int n = takeInput();
             chosen_algo = NON_CONVEX_FILL;
-            cout << "Filling using Non-Convex Fill. You should enter 8 points for the polygon.\n";
-            current_input_req = new input_requirements<Non_Convex_fill>(chosen_algo, 8, chosen_color);
+            cout << "Draw " << n << " points for the polygon.";
+            current_input_req = new input_requirements<Non_Convex_fill>(chosen_algo, n, chosen_color);
         }
         break;
         case clip_point_rec:
         {
-            cout << "Choose a color\n";
+            cout << "Point Clipping in rectangular window.\nChoose a color for the window:\n";
             COLORREF color = PickColor(hWnd);
-            cout << "Color Chosen: " << GetRValue(color) << " " << GetGValue(color) << " " << GetBValue(color) << "\n";
+            cout << "Color Chosen: " << (int)GetRValue(color) << " " << (int)GetGValue(color) << " " << (int)GetBValue(color) << "\n";
+
             input_requirements_base* temp = new 
                 input_requirements<Draw_Rectangle_Window>(DRAW_REC_WINDOW, 0, color);
             temp->run(hdc);
 
             chosen_algo = CLIP_POINT_REC;
+            cout << "Draw a point.\n";
             current_input_req = new input_requirements<Clip_Point_rec>(chosen_algo, 1, chosen_color);
         }
         break;
         case clip_point_square:
         {
+            cout << "Point Clipping in sqaure window.\nChoose a color for the window:\n";
             COLORREF color = PickColor(hWnd);
-           
+            cout << "Color Chosen: " << (int)GetRValue(color) << " " << (int)GetGValue(color) << " " << (int)GetBValue(color) << "\n";
+
             input_requirements_base* temp = new 
                 input_requirements<Draw_Square_Window>(DRAW_SQUARE_WINDOW, 0, color);
             temp->run(hdc);
 
             chosen_algo = CLIP_POINT_SQUARE;
-            cout << "Point Clipping.. Enter a point\n";
+            cout << "Draw a point.\n";
             current_input_req = new input_requirements<Clip_Point_square>(chosen_algo, 1, chosen_color);
         }
         break;
         case clip_line_rec:
         {
+            cout << "Line Clipping in rectangular window.\nChoose a color for the window:\n";
             COLORREF color = PickColor(hWnd);
+            cout << "Color Chosen: " << (int)GetRValue(color) << " " << (int)GetGValue(color) << " " << (int)GetBValue(color) << "\n";
+
             input_requirements_base* temp = new 
                 input_requirements<Draw_Rectangle_Window>(DRAW_REC_WINDOW, 0, color);
             temp->run(hdc);
 
             chosen_algo = CLIP_LINE_REC;
-            cout << "Line Clipping with rectangle.. Enter 2 points to represent the line\n";
+            cout << "Draw 2 points to represent the line.\n";
             current_input_req = new input_requirements<Clip_Line_rec>(chosen_algo, 2, chosen_color);
         }
         break;
         case clip_line_square:
         {
+            cout << "Line Clipping in square window.\nChoose a color for the window:\n";
             COLORREF color = PickColor(hWnd);
-            cout << "Color Chosen: " << GetRValue(color) << " " << GetGValue(color) << " " << GetBValue(color) << "\n";
+            cout << "Color Chosen: " << (int)GetRValue(color) << " " << (int)GetGValue(color) << " " << (int)GetBValue(color) << "\n";
+
             input_requirements_base* temp = new 
                 input_requirements<Draw_Square_Window>(DRAW_SQUARE_WINDOW, 0, color);
             temp->run(hdc);
 
             chosen_algo = CLIP_LINE_SQUARE;
-            cout << "Line Clipping with square window.. Enter 2 points to represent the line\n";
+            cout << "Draw 2 points to represent the line.\n";
             current_input_req = new input_requirements<Clip_Line_square>(chosen_algo, 2, chosen_color);
         }
         break;
         case clip_polygon:
         {
+            cout << "Polygon Clipping.\nChoose a color for the window:\n";
             COLORREF color = PickColor(hWnd);
-            cout << "Color Chosen: " << GetRValue(color) << " " << GetGValue(color) << " " << GetBValue(color) << "\n";
+            cout << "Color Chosen: " << (int)GetRValue(color) << " " << (int)GetGValue(color) << " " << (int)GetBValue(color) << "\n";
+
             input_requirements_base* temp = new 
                 input_requirements<Draw_Rectangle_Window>(DRAW_REC_WINDOW, 0, color);
             temp->run(hdc);
 
+            int n = takeInput();
             chosen_algo = CLIP_POLYGON;
-            cout << "Polygon Clipping.. Enter 5 points to represent the polygon\n";
-            current_input_req = new input_requirements<Clip_Polygon>(chosen_algo, 5, chosen_color);
+            cout << "Draw " << n << " points to represent the polygon.\n";
+            current_input_req = new input_requirements<Clip_Polygon>(chosen_algo, n, chosen_color);
         }
         break;
         case Choose_Color:
         {
-            cout << "pick a color\n";
+            cout << "pick a color:\n";
             chosen_color =PickColor(hWnd);
             cout << "Color Chosen: " << (int)GetRValue(chosen_color) << " " << (int)GetGValue(chosen_color) << " "<< (int)GetBValue(chosen_color) << "\n";
         }
