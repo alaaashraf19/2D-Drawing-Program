@@ -861,7 +861,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         case ellipse_direct:
         {
             chosen_algo = ELLIPSE_DIRECT;
-            cout << "Drawing Ellipse with the direct method.\nDraw 2 Point for diagonal of the ellipse.\n";
+            cout << "Drawing Ellipse with the direct method.\nDraw 2 Points for diagonal of the ellipse.\n";
             current_input_req = new input_requirements<ellipse_Direct>(chosen_algo, 2, chosen_color);
 
         }
@@ -870,7 +870,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         case ellipse_polar:
         {
             chosen_algo = ELLIPSE_POLAR;
-            cout << "Drawing Ellipse with the polar method.\nDraw 2 Point for diagonal of the ellipse.\n";
+            cout << "Drawing Ellipse with the polar method.\nDraw 2 Points for diagonal of the ellipse.\n";
             current_input_req = new input_requirements<ellipse_Polar>(chosen_algo, 2, chosen_color);
         }
         break;
@@ -878,7 +878,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         case ellipse_midpoint:
         {
             chosen_algo = ELLIPSE_MIDPOINT;
-            cout << "Drawing Ellipse with the MidPoint method.\nDraw 2 Point for diagonal of the ellipse.\n";
+            cout << "Drawing Ellipse with the MidPoint method.\nDraw 2 Points for diagonal of the ellipse.\n";
             current_input_req = new input_requirements<ellipse_Midpoint>(chosen_algo, 2, chosen_color);
         }
         break;
@@ -888,7 +888,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             cout << "Filling using Convex Fill.\n";
             int n = takeInput();
             chosen_algo = CONVEX_FILL;
-            cout << "Draw " << n << " points for the polygon.\n";
+            cout << "Draw " << n << " Points for the polygon.\n";
             current_input_req = new input_requirements<Convex_fill>(chosen_algo, n, chosen_color);
         }
         break;
@@ -898,7 +898,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             cout << "Filling using Non-Convex Fill.\n";
             int n = takeInput();
             chosen_algo = NON_CONVEX_FILL;
-            cout << "Draw " << n << " points for the polygon.";
+            cout << "Draw " << n << " Points for the polygon.";
             current_input_req = new input_requirements<Non_Convex_fill>(chosen_algo, n, chosen_color);
         }
         break;
@@ -974,7 +974,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             int n = takeInput();
             chosen_algo = CLIP_POLYGON;
-            cout << "Draw " << n << " points to represent the polygon.\n";
+            cout << "Draw " << n << " Points to represent the polygon.\n";
             current_input_req = new input_requirements<Clip_Polygon>(chosen_algo, n, chosen_color);
         }
         break;
@@ -1001,9 +1001,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     break;
     case WM_LBUTTONDOWN:
     {
+        xg = LOWORD(lParam);
+        yg = HIWORD(lParam);
         if (chosen_algo != NONE && current_input_req) {
-            xg = LOWORD(lParam);
-            yg = HIWORD(lParam);
             if(chosen_algo != CLIP_POINT_REC && chosen_algo != CLIP_POINT_SQUARE && chosen_algo != NON_REC_FLOOD_FILL && chosen_algo != REC_FLOOD_FILL)
                 SetPixel(hdc, xg, yg, chosen_color);
             current_input_req->pv.push_back(Point(xg, yg));
@@ -1017,9 +1017,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 //chosen_algo = NONE;
             }
 
-            ReleaseDC(hWnd, hdc);
         }
-        
+        else {
+            SetPixel(hdc, xg, yg, chosen_color);
+        }
+
+        ReleaseDC(hWnd, hdc);
 
     }
     break;

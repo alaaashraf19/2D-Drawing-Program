@@ -156,7 +156,7 @@ void fillQrtr_circle(HDC hdc, int xc, int yc, int x1, int y1, int x2, int y2, CO
 	double r = sqrt(dxsq + dysq);
 
 	int x, y, d;
-	int d1 = 3, d2;
+	int d1, d2;
 	DrawCircleMidPoint2(hdc, xc, yc, x1, y1, c);
 
 	int pos;
@@ -169,6 +169,7 @@ void fillQrtr_circle(HDC hdc, int xc, int yc, int x1, int y1, int x2, int y2, CO
 		x = 0;
 		y = r;
 		d = 1 - r;
+		d1 = 3;
 		d2 = 5 - 2 * r;
 		while (x < y) {
 			if (d < 0) {
@@ -203,6 +204,6 @@ void fillQrtr_circle(HDC hdc, int xc, int yc, int x1, int y1, int x2, int y2, CO
 				break;
 			}
 		}
-		r--;	//decrease R each rotation
+		r-=3;	//decrease R each rotation
 	}
 }

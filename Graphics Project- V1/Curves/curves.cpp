@@ -68,13 +68,28 @@ void DrawBezierCurve(HDC hdc, Point p1, Point p2, Point p3, Point p4, COLORREF c
 void CardinalSpline(HDC hdc, const vector<Point>& points, double controlParameter, int numpts, COLORREF c) {
     int q_x1, q_y1, q_x2, q_y2;
     double t = (1 - controlParameter) / 2.0;
-    for (int i = 1; i < points.size() - 2; i++) {
+    for (int i = 0; i < points.size() - 1; i++) {
+        if (i == 0) {
+            q_x1 = Round((points[i + 2].x - points[i].x) * t);
+            q_y1 = Round((points[i + 2].y - points[i].y) * t);
 
-        q_x1 = Round((points[i + 1].x - points[i - 1].x) * t);
-        q_y1 = Round((points[i + 1].y - points[i - 1].y) * t);
+            q_x2 = Round((points[i + 2].x - points[i].x) * t);
+            q_y2 = Round((points[i + 2].y - points[i].y) * t);
+        }
+        else if (i == points.size() - 2) {
+            q_x1 = Round((points[i + 1].x - points[i - 1].x) * t);
+            q_y1 = Round((points[i + 1].y - points[i - 1].y) * t);
 
-        q_x2 = Round((points[i + 2].x - points[i].x) * t);
-        q_y2 = Round((points[i + 2].y - points[i].y) * t);
+            q_x2 = Round((points[i + 1].x - points[i - 1].x) * t);
+            q_y2 = Round((points[i + 1].y - points[i - 1].y) * t);
+        }
+        else {
+            q_x1 = Round((points[i + 1].x - points[i - 1].x) * t);
+            q_y1 = Round((points[i + 1].y - points[i - 1].y) * t);
+
+            q_x2 = Round((points[i + 2].x - points[i].x) * t);
+            q_y2 = Round((points[i + 2].y - points[i].y) * t);
+        }
 
         DrawHermiteCurve(hdc, points[i].x, points[i].y, q_x1, q_y1, points[i + 1].x, points[i + 1].y, q_x2, q_y2, numpts, c);
 
