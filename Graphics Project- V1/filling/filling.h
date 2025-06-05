@@ -9,8 +9,9 @@
 #include "../Line/lines.h"
 #include "../Curves/curves.h"
 
-void RecFloodFill(HDC hdc, int x, int y, COLORREF bc, COLORREF fc);
-void NonRecFloodFill(HDC hdc, int x, int y, COLORREF bc, COLORREF fc);
+void RecFloodFill(HDC hdc, int x, int y, COLORREF bg, COLORREF fc);
+
+void NonRecFloodFill(HDC hdc, int x, int y, COLORREF fc);
 
 ///Convex Filling
 void ConvexFill(HDC hdc, std::vector<Point> v, int n, COLORREF c);

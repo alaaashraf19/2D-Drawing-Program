@@ -23,7 +23,7 @@
 #define Draw_Line_Bres 212
 #define Draw_Line_Param 213
 
-#define Flood_Fill 214
+#define Non_Rec_Flood_Fill 214
 #define Rec_Flood_Fill 215
 
 #define Convex_Fill 216
@@ -36,6 +36,7 @@
 #define ellipse_midpoint 220
 
 #define Choose_Color 222
+#define Choose_fill_Color 300
 
 #define clip_point_rec 223
 #define clip_point_square 224
@@ -309,6 +310,8 @@ COLORREF PickColor(HWND hwndParent) {
 }
 
 /////////////////////////////////////////////////////////
+
+
 void Add_Theme_Menu(HWND);
 HMENU MainMenu;
 HCURSOR currentCursor = LoadCursor(NULL, IDC_ARROW);
@@ -344,6 +347,8 @@ enum Algorithm {
     CLIP_POLYGON,
     DRAW_REC_WINDOW,
     DRAW_SQUARE_WINDOW,
+    NON_REC_FLOOD_FILL,
+    REC_FLOOD_FILL,
 };
 
 class input_requirements_base {
@@ -397,6 +402,13 @@ public:
 //};
 
 
+input_requirements_base* current_input_req = nullptr;
+
+Algorithm chosen_algo = NONE;
+HBITMAP g_hLoadedBitmap = nullptr;
+COLORREF chosen_color;
+COLORREF chosen_fill_color;
+int xg, yg;
 
 class DDA_LINE {
 public:
@@ -581,15 +593,24 @@ public:
     };
 };
 
+class NonRec_Flood_fill {
+public:
+    void run(HDC hdc, vector<Point>& pv, COLORREF c) {   
+
+        NonRecFloodFill(hdc, pv[0].x, pv[0].y, chosen_fill_color);
+
+    };
+};
+class Rec_Flood_fill {
+public:
+    void run(HDC hdc, vector<Point>& pv, COLORREF c) {
+        COLORREF bg = GetPixel(hdc, pv[0].x, pv[0].y);
+        if(bg!= chosen_fill_color) RecFloodFill(hdc, pv[0].x, pv[0].y, bg ,chosen_fill_color);
+
+    };
+};
 //vector<shape*> all_drawn_shapes;
 
-
-input_requirements_base* current_input_req = nullptr;
-
-Algorithm chosen_algo = NONE;
-HBITMAP g_hLoadedBitmap = nullptr;
-COLORREF chosen_color;
-int xg, yg;
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     AttachConsoleWindow();
@@ -801,7 +822,22 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             current_input_req = new input_requirements<Fill_Rectangle_Bezier>(chosen_algo, 4, chosen_color);
         }
         break;
-        //case Rec_Flood_Fill:
+        case Non_Rec_Flood_Fill:
+        {
+            chosen_algo = NON_REC_FLOOD_FILL;
+            cout << "Filling using Non Recursive FloodFill. You should click inside 1 shape to fill\n";
+            current_input_req = new input_requirements<NonRec_Flood_fill>(chosen_algo, 1, chosen_color);
+            chosen_fill_color = PickColor(hWnd);
+        }
+        break;
+        case Rec_Flood_Fill:
+        {
+            chosen_algo = REC_FLOOD_FILL;
+            cout << "Filling using Recursive FloodFill. You should click inside 1 shape to fill\n";
+            current_input_req = new input_requirements<Rec_Flood_fill>(chosen_algo, 1, chosen_color);
+            chosen_fill_color = PickColor(hWnd);
+        }
+        break;
         case Draw_Cardinal_Spline:
         {
             chosen_algo = CARDINAL_SPLINE;
@@ -920,6 +956,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             cout << "Color Chosen: " << (int)GetRValue(chosen_color) << " " << (int)GetGValue(chosen_color) << " "<< (int)GetBValue(chosen_color) << "\n";
         }
         break;
+
         case IDM_ABOUT:
             DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
         break;
@@ -938,8 +975,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         if (chosen_algo != NONE && current_input_req) {
             xg = LOWORD(lParam);
             yg = HIWORD(lParam);
-             if(chosen_algo != CLIP_POINT_REC && chosen_algo != CLIP_POINT_SQUARE)
-                 SetPixel(hdc, xg, yg, chosen_color);
+            if(chosen_algo != CLIP_POINT_REC && chosen_algo != CLIP_POINT_SQUARE && chosen_algo != NON_REC_FLOOD_FILL && chosen_algo != REC_FLOOD_FILL)
+                SetPixel(hdc, xg, yg, chosen_color);
             current_input_req->pv.push_back(Point(xg, yg));
             if (current_input_req->pv.size() == current_input_req->req_pts) {
                 current_input_req->run(hdc);
@@ -1032,6 +1069,7 @@ void Add_Theme_Menu(HWND hWnd) {
     HMENU Clipping = CreateMenu();
     HMENU Clip_Point = CreateMenu();
     HMENU Clip_Line = CreateMenu();
+    //HMENU Color = CreateMenu();
     HMENU Theme = CreateMenu();
     HMENU Cursor = CreateMenu();
 
@@ -1039,6 +1077,7 @@ void Add_Theme_Menu(HWND hWnd) {
     //AppendMenuW(File, MF_STRING, RESTORE_DC, L"Load");
     AppendMenuW(File, MF_STRING, LOAD, L"Load");
     AppendMenuW(File, MF_STRING, CLEAR_SCREEN, L"Clear Screen");
+
 
     AppendMenuW(Draw, MF_POPUP, (UINT_PTR)Line, L"Line");
     AppendMenuW(Draw, MF_POPUP, (UINT_PTR)Circle, L"Circle");
@@ -1056,8 +1095,8 @@ void Add_Theme_Menu(HWND hWnd) {
     AppendMenuW(Circle, MF_STRING, circle_modified_mid, L"Modified Midpoint");
 
 
-    AppendMenuW(FloodFill, MF_STRING, NULL, L"Recursive");
-    AppendMenuW(FloodFill, MF_STRING, NULL, L"Non Recursive");
+    AppendMenuW(FloodFill, MF_STRING, Rec_Flood_Fill, L"Recursive");
+    AppendMenuW(FloodFill, MF_STRING, Non_Rec_Flood_Fill, L"Non Recursive");
 
     AppendMenuW(ScanLineFilling, MF_STRING, Convex_Fill, L"Convex Filling");
     AppendMenuW(ScanLineFilling, MF_STRING, Non_Convex_Fill, L"Non Convex Filling");
@@ -1092,6 +1131,8 @@ void Add_Theme_Menu(HWND hWnd) {
     AppendMenuW(Cursor, MF_STRING, Set_Ibeam_Cursor, L"I Beam");
 
     
+    //AppendMenuW(Color, MF_STRING, Choose_fill_Color, L"Choose Fill Color");
+    //AppendMenuW(Color, MF_STRING, Choose_Color, L"Choose Drawing Color");
 
     AppendMenuW(MainMenu, MF_POPUP, (UINT_PTR)File, L"File");
     AppendMenuW(MainMenu, MF_POPUP, (UINT_PTR)Draw, L"Draw");
