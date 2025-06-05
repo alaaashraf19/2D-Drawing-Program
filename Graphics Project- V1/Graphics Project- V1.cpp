@@ -987,7 +987,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             if (current_input_req->pv.size() == current_input_req->req_pts) {
                 shapes.push_back(current_input_req->clone());
                 current_input_req->run(hdc);
-                //current_input_req->pv.clear();
+                current_input_req->pv.clear();
                 //delete current_input_req;
                 //current_input_req = nullptr;
                 //chosen_algo = NONE;
