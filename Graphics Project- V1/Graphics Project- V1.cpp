@@ -411,16 +411,6 @@ public:
 //    LastShape(const vector<Point>& p, COLORREF C, Algorithm a, int pt): points(p), c(C), alg(a), pts(pt)  {}
 //};
 
-
-input_requirements_base* current_input_req = nullptr;
-
-Algorithm chosen_algo = NONE;
-HBITMAP g_hLoadedBitmap = nullptr;
-COLORREF chosen_color;
-COLORREF chosen_fill_color;
-int xg, yg;
-vector<input_requirements_base*> shapes;
-
 class DDA_LINE {
 public:
     void run(HDC hdc, vector<Point>& pv, COLORREF c) {
@@ -608,7 +598,7 @@ class NonRec_Flood_fill {
 public:
     void run(HDC hdc, vector<Point>& pv, COLORREF c) {   
 
-        NonRecFloodFill(hdc, pv[0].x, pv[0].y, chosen_fill_color);
+        NonRecFloodFill(hdc, pv[0].x, pv[0].y, c);
 
     };
 };
@@ -616,11 +606,18 @@ class Rec_Flood_fill {
 public:
     void run(HDC hdc, vector<Point>& pv, COLORREF c) {
         COLORREF bg = GetPixel(hdc, pv[0].x, pv[0].y);
-        if(bg!= chosen_fill_color) RecFloodFill(hdc, pv[0].x, pv[0].y, bg ,chosen_fill_color);
+        if(bg!= c) RecFloodFill(hdc, pv[0].x, pv[0].y, bg ,c);
 
     };
 };
-//vector<shape*> all_drawn_shapes;
+
+input_requirements_base* current_input_req = nullptr;
+
+Algorithm chosen_algo = NONE;
+HBITMAP g_hLoadedBitmap = nullptr;
+COLORREF chosen_color;
+int xg, yg;
+vector<input_requirements_base*> shapes;
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -839,7 +836,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             chosen_algo = NON_REC_FLOOD_FILL;
             cout << "Filling using Non Recursive FloodFill.\nDraw 1 Point inside 1 shape to fill.\n";
             current_input_req = new input_requirements<NonRec_Flood_fill>(chosen_algo, 1, chosen_color);
-            chosen_fill_color = PickColor(hWnd);
+            cout << "Choose filling color:";
+            chosen_color = PickColor(hWnd);
         }
         break;
         case Rec_Flood_Fill:
@@ -847,7 +845,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             chosen_algo = REC_FLOOD_FILL;
             cout << "Filling using Recursive FloodFill.\nDraw 1 Point inside 1 shape to fill.\n";
             current_input_req = new input_requirements<Rec_Flood_fill>(chosen_algo, 1, chosen_color);
-            chosen_fill_color = PickColor(hWnd);
+            cout << "Choose filling color:";
+            chosen_color = PickColor(hWnd);
         }
         break;
         case Draw_Cardinal_Spline:
@@ -1009,6 +1008,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 SetPixel(hdc, xg, yg, chosen_color);
             current_input_req->pv.push_back(Point(xg, yg));
             if (current_input_req->pv.size() == current_input_req->req_pts) {
+                current_input_req->c = chosen_color;
                 shapes.push_back(current_input_req->clone());
                 current_input_req->run(hdc);
                 current_input_req->pv.clear();
