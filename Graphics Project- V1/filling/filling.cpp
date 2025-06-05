@@ -1,5 +1,7 @@
 #include "filling.h"
 #include "../Curves/curves.h"
+#include <algorithm>
+
 using namespace std;
 
 #define PI 3.14
@@ -170,7 +172,17 @@ double distance(Point p1, Point p2) {
 }
 
 void fillRecBezier(HDC hdc, vector<Point> p, int n, COLORREF c) {
+    /*
+    (X0,Y0)<--p1        (X1,Y0)<--p2
 
+    (X0,Y1)<--p4        (X1,Y1)<--p3
+    */
+    Point p1 = p[0];
+    Point p2 = Point(p[1].x, p[0].y);
+    Point p3 = p[1];
+    Point p4 = Point(p[0].x, p[1].y);
+    p.push_back(p2);
+    p.push_back(p4);
     // Sort by X, then Y
     sort(p.begin(), p.end(), [](Point a, Point b) {
         if (a.x == b.x) return a.y < b.y;
@@ -199,23 +211,44 @@ void fillRecBezier(HDC hdc, vector<Point> p, int n, COLORREF c) {
 
 void filleHermiteSq(HDC hdc, vector<Point> p, int n, COLORREF c) {
 
-    // Sort by X, then Y
+    Point p1 = p[0], p3 = p[1];
+
+    if (p1.y > p3.y) swap(p1, p3);
+
+    // Get the diagonal length and square side
+    double diag = distance(p1, p3);
+    int length = round(diag / sqrt(2));  
+
+    // Determine direction
+    int dx = (p3.x - p1.x >= 0) ? 1 : -1;
+    int dy = (p3.y - p1.y >= 0) ? 1 : -1;
+
+    Point p2 = Point(p1.x + dx * length, p1.y);
+    Point p4 = Point(p1.x, p1.y + dy * length);
+    p3 = Point(p1.x + dx * length, p1.y + dy * length); 
+
+    p.clear();
+    p.push_back(p2);
+    p.push_back(p1);
+    p.push_back(p3);
+    p.push_back(p4);
+
+    // Sort points: by X then Y
     sort(p.begin(), p.end(), [](Point a, Point b) {
         if (a.x == b.x) return a.y < b.y;
         return a.x < b.x;
         });
 
-    int length = abs(p[1].x - p[2].x);
 
+    int startY = min(p[0].y, p[1].y);
+    int endY = max(p[2].y, p[3].y);
+    int startX = p[0].x;
+    int endX = p[2].x;
 
-    if (p[0].y > p[1].y) {
-        for (int y = p[0].y; y > p[0].y - length; --y) {
-            DrawHermiteCurve(hdc, p[0].x, y, 0, 0, p[0].x + length, y, 0, 0, 500, c);
-        }
-    }
-    else {
-        for (int y = p[0].y; y < p[0].y + length; ++y) {
-            DrawHermiteCurve(hdc, p[0].x, y, 0, 0, p[0].x + length, y, 0, 0, 500, c);
-        }
+    if (startY > endY) swap(startY, endY);
+    if (startX > endX) swap(startX, endX);
+
+    for (int y = startY; y <= endY; ++y) {
+        DrawHermiteCurve(hdc, startX, y, 0, 0, endX, y, 0, 0, 500, c);
     }
 }
