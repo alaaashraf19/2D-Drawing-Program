@@ -821,14 +821,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             chosen_algo = FILL_SQUARE_HERMITE;
             cout << "Filling a Sqaure with Hermite Curves.\nDraw Top_Left and Bottom_Right Points for diagonal of the square.\n";
-            current_input_req = new input_requirements<Fill_Square_Hermite>(chosen_algo, 4, chosen_color);
+            current_input_req = new input_requirements<Fill_Square_Hermite>(chosen_algo, 2, chosen_color);
         }
         break;
         case fill_rectangle_bezier:
         {
             chosen_algo = FILL_RECTANGLE_BEZIER;
             cout << "Filling a rectangle with Hermite Curves.\nDraw Top_Left and Bottom_Right Points for diagonal of the rectangle.\n";
-            current_input_req = new input_requirements<Fill_Rectangle_Bezier>(chosen_algo, 4, chosen_color);
+            current_input_req = new input_requirements<Fill_Rectangle_Bezier>(chosen_algo, 2, chosen_color);
         }
         break;
         case Non_Rec_Flood_Fill:
