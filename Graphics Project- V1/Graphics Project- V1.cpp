@@ -719,21 +719,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             
             chosen_algo = LINE_DDA;
-            cout << "Drawing a line with" << chosen_algo << "\nEnter 2 Points.\n";
+            cout << "Drawing a line with DDA.\nEnter 2 Points.\n";
             current_input_req = new input_requirements<DDA_LINE>(chosen_algo, 2, chosen_color);
         }
         break;
         case Draw_Line_Bres:
         {
             chosen_algo = LINE_BRES;
-            cout << "Drawing a line with" << chosen_algo << "\nEnter 2 Points.\n";
+            cout << "Drawing a line with bresenham.\nEnter 2 Points.\n";
             current_input_req = new input_requirements<BRES_LINE>(chosen_algo, 2, chosen_color);
         }
         break;
         case Draw_Line_Param:
         {
             chosen_algo = LINE_PARAM;
-            cout << "Drawing a line with " << chosen_algo<<"\nEnter 2 Points.\n";
+            cout << "Drawing a line with parametric.\nEnter 2 Points.\n";
             current_input_req = new input_requirements<Param_LINE>(chosen_algo, 2, chosen_color);
 
         }
@@ -775,10 +775,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
         case fill_circle_line:
         {
-            /*input_requirements_base* temp = new
-                input_requirements<Circle_Modified_Mid>(CIRCLE_MODIFIED_MID, 2, chosen_color);
-            temp->run(hdc);*/
-
             chosen_algo = FILL_CIRCLE_LINE;
             cout << "Filling a Circle with Lines\nYou should Enter 3 Points.\n2 Points for the circle and 1 point to represnt the quarter\n";
             current_input_req = new input_requirements<Fill_Circle_Lines>(chosen_algo, 3, chosen_color);
@@ -786,11 +782,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             break;
         case fill_circle_circles:
         {
-            /*input_requirements_base* temp = new
-                input_requirements<Circle_Modified_Mid>(CIRCLE_MODIFIED_MID, 2, chosen_color);
-            temp->run(hdc);*/
-
             chosen_algo = FILL_CIRCLE_CIRCLES;
+            cout << "Filling a Circle with Circles\nYou should Enter 3 Points.\n2 Points for the circle and 1 point to represnt the quarter\n";
             current_input_req = new input_requirements<Fill_Circle_Circles>(chosen_algo, 3, chosen_color);
         }
             break;
@@ -852,7 +845,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         case Non_Convex_Fill:
         {
             chosen_algo = NON_CONVEX_FILL;
-            cout << "Filling using Convex Fill. You should enter 8 points for the polygon.\n";
+            cout << "Filling using Non-Convex Fill. You should enter 8 points for the polygon.\n";
             current_input_req = new input_requirements<Non_Convex_fill>(chosen_algo, 8, chosen_color);
         }
         break;
@@ -924,7 +917,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             cout << "pick a color\n";
             chosen_color =PickColor(hWnd);
-            cout << "Color Chosen: " << GetRValue(Choose_Color) << " " << GetGValue(Choose_Color) << " "<<GetBValue(Choose_Color) << "\n";
+            cout << "Color Chosen: " << (int)GetRValue(chosen_color) << " " << (int)GetGValue(chosen_color) << " "<< (int)GetBValue(chosen_color) << "\n";
         }
         break;
         case IDM_ABOUT:
