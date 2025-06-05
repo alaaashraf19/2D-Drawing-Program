@@ -360,7 +360,7 @@ public:
     input_requirements_base(Algorithm algorithm, int pts, COLORREF color) : alg(algorithm), req_pts(pts), c(color) {
         pv.reserve(pts);  
     }
-
+    virtual input_requirements_base* clone() const = 0;
     virtual void run(HDC hdc) = 0;
     virtual ~input_requirements_base() {}
 };
@@ -371,7 +371,10 @@ public:
     T instance;
 
     input_requirements(Algorithm algorithm, int pts, COLORREF c) : input_requirements_base(algorithm, pts,c) {}
-   
+
+    input_requirements_base* clone() const override {
+        return new input_requirements<T>(*this);  // copy construct
+    }
     void run(HDC hdc) {
         instance.run(hdc, pv, c);
     }
@@ -382,7 +385,7 @@ public:
 //    virtual void run(HDC hdc)=0;
 //    virtual ~shape() {}
 //};
-
+//
 //template<typename T>
 //class shapewrapper : public shape {
 //public:
@@ -395,10 +398,11 @@ public:
 
 
 //struct LastShape {
+//    int pts;
 //    vector<Point> points;
 //    COLORREF c;
 //    Algorithm alg;
-//    LastShape(const vector<Point>& p, COLORREF C, Algorithm a): points(p), c(C), alg(a)  {}
+//    LastShape(const vector<Point>& p, COLORREF C, Algorithm a, int pt): points(p), c(C), alg(a), pts(pt)  {}
 //};
 
 
@@ -409,6 +413,7 @@ HBITMAP g_hLoadedBitmap = nullptr;
 COLORREF chosen_color;
 COLORREF chosen_fill_color;
 int xg, yg;
+vector<input_requirements_base*> shapes;
 
 class DDA_LINE {
 public:
@@ -664,7 +669,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         case RESTORE_DC:
         {
             hdc = GetDC(hWnd);
-            RestoreDC(hdc, Last_Saved_DC);
+            for (auto shape : shapes) shape->run(hdc);
+            ReleaseDC(hWnd, hdc);
         }
         break;
         case LOAD:
@@ -979,8 +985,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 SetPixel(hdc, xg, yg, chosen_color);
             current_input_req->pv.push_back(Point(xg, yg));
             if (current_input_req->pv.size() == current_input_req->req_pts) {
+                shapes.push_back(current_input_req->clone());
                 current_input_req->run(hdc);
-                current_input_req->pv.clear();
+                //current_input_req->pv.clear();
                 //delete current_input_req;
                 //current_input_req = nullptr;
                 //chosen_algo = NONE;
@@ -1074,7 +1081,7 @@ void Add_Theme_Menu(HWND hWnd) {
     HMENU Cursor = CreateMenu();
 
     AppendMenuW(File, MF_STRING, SAVE_DC, L"Save");
-    //AppendMenuW(File, MF_STRING, RESTORE_DC, L"Load");
+    AppendMenuW(File, MF_STRING, RESTORE_DC, L"Restore");
     AppendMenuW(File, MF_STRING, LOAD, L"Load");
     AppendMenuW(File, MF_STRING, CLEAR_SCREEN, L"Clear Screen");
 
